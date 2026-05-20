@@ -1,18 +1,88 @@
+
 "use client";
 
+import { useState } from "react";
 import { BalanceOverview } from "@/components/dashboard/balance-overview";
 import { NestNodeCard } from "@/components/clan/nest-node-card";
 import { MOCK_TRIP, MOCK_EXPENSES } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, History, ArrowRight } from "lucide-react";
+import { Plus, History, ArrowRight, User, Users, LogOut } from "lucide-react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
+  const [selectedUser, setSelectedUser] = useState<"sanjeev" | "nitin" | null>(null);
+
+  if (!selectedUser) {
+    return (
+      <div className="flex min-h-[70vh] flex-col items-center justify-center space-y-12 animate-in fade-in duration-500">
+        <div className="text-center space-y-4">
+          <h1 className="text-5xl font-bold tracking-tight text-primary font-headline">Who is logging in?</h1>
+          <p className="text-muted-foreground text-lg">Select your profile to manage your group's shares and expenses.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
+          <Card 
+            className="group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-card/50"
+            onClick={() => setSelectedUser("sanjeev")}
+          >
+            <CardContent className="flex flex-col items-center p-12 space-y-6">
+              <div className="h-24 w-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                <User className="h-12 w-12" />
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold font-headline">Sanjeev</h2>
+                <p className="text-muted-foreground text-sm">Manager: Sanjeev's Family</p>
+              </div>
+              <Button className="w-full font-semibold">Login as Sanjeev</Button>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="group cursor-pointer border-2 border-transparent hover:border-accent/50 transition-all hover:shadow-2xl hover:shadow-accent/10 bg-card/50"
+            onClick={() => setSelectedUser("nitin")}
+          >
+            <CardContent className="flex flex-col items-center p-12 space-y-6">
+              <div className="h-24 w-24 rounded-3xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
+                <Users className="h-12 w-12" />
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold font-headline">Nitin</h2>
+                <p className="text-muted-foreground text-sm">Manager: Nitin's Clan</p>
+              </div>
+              <Button variant="outline" className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold">Login as Nitin</Button>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <p className="text-xs text-muted-foreground italic">
+          Tip: You can switch users anytime from the dashboard header.
+        </p>
+      </div>
+    );
+  }
+
+  const userName = selectedUser === "sanjeev" ? "Sanjeev" : "Nitin";
+
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 animate-in slide-in-from-bottom-2 duration-500">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 py-0.5">
+              Logged in as {userName}
+            </Badge>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 text-[10px] gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              onClick={() => setSelectedUser(null)}
+            >
+              <LogOut className="h-3 w-3" />
+              Switch User
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold tracking-tight text-primary">Clan Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Managing <span className="text-accent font-semibold">{MOCK_TRIP.name}</span>
