@@ -1,3 +1,4 @@
+
 import { Home, ListOrdered, TreePine, CreditCard, Settings, PlusCircle } from "lucide-react";
 import {
   Sidebar,
@@ -56,9 +57,11 @@ export function ClanSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton className="text-primary hover:text-primary">
-                  <PlusCircle className="h-4 w-4" />
-                  <span>New Expense</span>
+                <SidebarMenuButton className="text-primary hover:text-primary" asChild>
+                  <Link href="/expenses">
+                    <PlusCircle className="h-4 w-4" />
+                    <span>New Expense</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

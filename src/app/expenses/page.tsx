@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -11,9 +12,32 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ReceiptText, Search, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ExpensesPage() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [amount, setAmount] = useState("");
+  const { toast } = useToast();
+
+  const handleCreateEntry = () => {
+    if (!amount || !selectedNode) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please provide an amount and select a target node."
+      });
+      return;
+    }
+
+    toast({
+      title: "Expense Logged",
+      description: "Your entry has been added to the historical ledger.",
+    });
+    
+    // Reset form
+    setAmount("");
+    setSelectedNode(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -39,7 +63,13 @@ export default function ExpensesPage() {
               
               <div className="space-y-2">
                 <Label>Amount</Label>
-                <Input type="number" placeholder="0.00" className="bg-background" />
+                <Input 
+                  type="number" 
+                  placeholder="0.00" 
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="bg-background" 
+                />
               </div>
               
               <div className="space-y-2">
@@ -52,11 +82,14 @@ export default function ExpensesPage() {
                     {MOCK_TRIP.nodes.map(n => (
                       <SelectItem key={n.id} value={n.id}>{n.display_name}</SelectItem>
                     ))}
+                    {MOCK_TRIP.nodes.flatMap(n => n.sub_nodes || []).map(sn => (
+                      <SelectItem key={sn.id} value={sn.id}>{sn.display_name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <Button className="w-full">Create Entry</Button>
+              <Button className="w-full" onClick={handleCreateEntry}>Create Entry</Button>
             </CardContent>
           </Card>
         </div>

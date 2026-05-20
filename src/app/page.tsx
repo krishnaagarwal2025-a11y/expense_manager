@@ -93,9 +93,11 @@ export default function Dashboard() {
             <History className="h-4 w-4" />
             Activity Log
           </Button>
-          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20">
-            <Plus className="h-4 w-4" />
-            Log Expense
+          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20" asChild>
+            <Link href="/expenses">
+              <Plus className="h-4 w-4" />
+              Log Expense
+            </Link>
           </Button>
         </div>
       </header>
