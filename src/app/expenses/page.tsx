@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,34 +9,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ReceiptText, Search, Download } from "lucide-react";
+import { ReceiptText, Search, Download, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/context/user-context";
 
 export default function ExpensesPage() {
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const { user } = useUser();
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [shares, setShares] = useState<Record<string, number>>({});
   const { toast } = useToast();
 
+  const handleShareChange = (nodeId: string, val: string) => {
+    setShares(prev => ({ ...prev, [nodeId]: parseInt(val) || 0 }));
+  };
+
   const handleCreateEntry = () => {
-    if (!amount || !selectedNode || !description) {
+    const activeNodes = Object.entries(shares).filter(([_, s]) => s > 0);
+    
+    if (!amount || !description || activeNodes.length === 0) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "Please provide a description, amount, and select a target node."
+        description: "Please provide a description, amount, and at least one share allocation."
       });
       return;
     }
 
     toast({
       title: "Expense Logged",
-      description: `Successfully logged "${description}" for $${amount}.`,
+      description: `Successfully logged "${description}" for ₹${amount}. Split across ${activeNodes.length} nodes.`,
     });
     
     // Reset form
     setAmount("");
     setDescription("");
-    setSelectedNode(null);
+    setShares({});
   };
 
   return (
@@ -71,7 +78,7 @@ export default function ExpensesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Amount</Label>
+                <Label>Amount (₹)</Label>
                 <Input 
                   type="number" 
                   placeholder="0.00" 
@@ -81,24 +88,28 @@ export default function ExpensesPage() {
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label>Allocation Target</Label>
-                <Select value={selectedNode || ""} onValueChange={setSelectedNode}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select target node" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_TRIP.nodes.map(n => (
-                      <SelectItem key={n.id} value={n.id}>{n.display_name}</SelectItem>
-                    ))}
-                    {MOCK_TRIP.nodes.flatMap(n => n.sub_nodes || []).map(sn => (
-                      <SelectItem key={sn.id} value={sn.id}>{sn.display_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3 pt-2">
+                <Label className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  Split Allocation (Shares)
+                </Label>
+                <div className="space-y-3 bg-secondary/20 p-3 rounded-lg border border-border/50">
+                  {MOCK_TRIP.nodes.map(n => (
+                    <div key={n.id} className="flex items-center justify-between gap-4">
+                      <span className="text-xs font-medium truncate">{n.display_name}</span>
+                      <Input 
+                        type="number" 
+                        placeholder="0"
+                        className="w-20 h-8 text-right text-xs"
+                        value={shares[n.id] || ""}
+                        onChange={(e) => handleShareChange(n.id, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <Button className="w-full" onClick={handleCreateEntry}>Create Entry</Button>
+              <Button className="w-full mt-2" onClick={handleCreateEntry}>Create Entry</Button>
             </CardContent>
           </Card>
         </div>
@@ -117,7 +128,7 @@ export default function ExpensesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Description</TableHead>
-                  <TableHead>Target</TableHead>
+                  <TableHead>Split Details</TableHead>
                   <TableHead>Payer</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
@@ -137,11 +148,16 @@ export default function ExpensesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {expense.allocated_to.map(id => (
-                          <Badge key={id} variant="secondary" className="text-[9px]">
-                            {id.split('_').slice(1).join(' ')}
-                          </Badge>
+                      <div className="flex flex-col gap-1">
+                        {expense.allocations.map(a => (
+                          <div key={a.node_id} className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-[9px] h-4">
+                              {a.node_id.split('_')[1]}
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground">
+                              {a.shares} shares (₹{a.amount.toLocaleString()})
+                            </span>
+                          </div>
                         ))}
                       </div>
                     </TableCell>
@@ -149,7 +165,7 @@ export default function ExpensesPage() {
                       {expense.payer_id.split('_')[1]}
                     </TableCell>
                     <TableCell className="text-right font-bold font-headline">
-                      ${expense.amount.toFixed(2)}
+                      ₹{expense.amount.toLocaleString()}
                     </TableCell>
                   </TableRow>
                 ))}

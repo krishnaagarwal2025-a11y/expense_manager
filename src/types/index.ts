@@ -15,13 +15,19 @@ export interface Trip {
   nodes: ClanNode[];
 }
 
+export interface ExpenseAllocation {
+  node_id: string;
+  shares: number;
+  amount: number;
+}
+
 export interface Expense {
   id: string;
   trip_id: string;
   description: string;
   amount: number;
   date: string;
-  allocated_to: string[]; // Node IDs
+  allocations: ExpenseAllocation[];
   payer_id: string; // Node ID of who paid
 }
 

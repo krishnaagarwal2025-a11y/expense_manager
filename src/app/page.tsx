@@ -1,20 +1,19 @@
-
 "use client";
 
-import { useState } from "react";
 import { BalanceOverview } from "@/components/dashboard/balance-overview";
 import { NestNodeCard } from "@/components/clan/nest-node-card";
 import { MOCK_TRIP, MOCK_EXPENSES } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, History, ArrowRight, User, Users, LogOut } from "lucide-react";
+import { Plus, History, ArrowRight, User, Users, LogOut, Info } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { useUser } from "@/context/user-context";
 
 export default function Dashboard() {
-  const [selectedUser, setSelectedUser] = useState<"sanjeev" | "nitin" | null>(null);
+  const { user, setUser, userId } = useUser();
 
-  if (!selectedUser) {
+  if (!user) {
     return (
       <div className="flex min-h-[70vh] flex-col items-center justify-center space-y-12 animate-in fade-in duration-500">
         <div className="text-center space-y-4">
@@ -25,7 +24,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
           <Card 
             className="group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-card/50"
-            onClick={() => setSelectedUser("sanjeev")}
+            onClick={() => setUser("sanjeev")}
           >
             <CardContent className="flex flex-col items-center p-12 space-y-6">
               <div className="h-24 w-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
@@ -41,7 +40,7 @@ export default function Dashboard() {
 
           <Card 
             className="group cursor-pointer border-2 border-transparent hover:border-accent/50 transition-all hover:shadow-2xl hover:shadow-accent/10 bg-card/50"
-            onClick={() => setSelectedUser("nitin")}
+            onClick={() => setUser("nitin")}
           >
             <CardContent className="flex flex-col items-center p-12 space-y-6">
               <div className="h-24 w-24 rounded-3xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
@@ -55,15 +54,18 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-        
-        <p className="text-xs text-muted-foreground italic">
-          Tip: You can switch users anytime from the dashboard header.
-        </p>
       </div>
     );
   }
 
-  const userName = selectedUser === "sanjeev" ? "Sanjeev" : "Nitin";
+  const userName = user === "sanjeev" ? "Sanjeev" : "Nitin";
+  const ownClanId = user === "sanjeev" ? "node_sanjeev_family" : "node_nitin_clan";
+
+  // Filter expenses where this user's clan is involved and needs further sub-allocation
+  const needsAllocation = MOCK_EXPENSES.filter(exp => 
+    exp.allocations.some(a => a.node_id === ownClanId) && 
+    user === "nitin" // Nitin has sub-nodes to allocate to
+  );
 
   return (
     <div className="space-y-8 pb-12 animate-in slide-in-from-bottom-2 duration-500">
@@ -77,7 +79,7 @@ export default function Dashboard() {
               variant="ghost" 
               size="sm" 
               className="h-6 text-[10px] gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              onClick={() => setSelectedUser(null)}
+              onClick={() => setUser(null)}
             >
               <LogOut className="h-3 w-3" />
               Switch User
@@ -103,6 +105,23 @@ export default function Dashboard() {
       </header>
 
       <BalanceOverview />
+
+      {user === "nitin" && needsAllocation.length > 0 && (
+        <section className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-accent/20 p-2 rounded-lg">
+              <Info className="h-5 w-5 text-accent" />
+            </div>
+            <div>
+              <p className="font-bold text-accent">Pending Clan Allocations</p>
+              <p className="text-xs text-muted-foreground">You have {needsAllocation.length} expenses to distribute within your core family and cousins.</p>
+            </div>
+          </div>
+          <Button size="sm" variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white">
+            Allocate Now
+          </Button>
+        </section>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-5">
         <section className="lg:col-span-3 space-y-4">
@@ -138,12 +157,12 @@ export default function Dashboard() {
                         {expense.date}
                       </span>
                       <span className="text-[10px] text-accent">
-                        Split with {expense.allocated_to.length} nodes
+                        Split with {expense.allocations.length} groups
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold font-headline">${expense.amount.toFixed(2)}</p>
+                    <p className="text-sm font-bold font-headline">₹{expense.amount.toLocaleString()}</p>
                     <p className="text-[10px] text-muted-foreground">Paid by {expense.payer_id.split('_')[1]}</p>
                   </div>
                 </div>

@@ -6,8 +6,8 @@ import { ArrowRight, CheckCircle2, History, TrendingDown } from "lucide-react";
 
 export default function SettlementPage() {
   const calculations = [
-    { from: "Sanjeev's Family", to: "Nitin's Clan", amount: 242.20, status: "pending" },
-    { from: "Nitin Core", to: "Cousins", amount: 45.00, status: "pending" },
+    { from: "Sanjeev's Family", to: "Nitin's Clan", amount: 24220, status: "pending" },
+    { from: "Nitin Core", to: "Cousins", amount: 4500, status: "pending" },
   ];
 
   return (
@@ -37,7 +37,7 @@ export default function SettlementPage() {
                   <div className="h-px w-8 bg-border relative">
                     <ArrowRight className="h-3 w-3 absolute -right-1 -top-1.5 text-muted-foreground" />
                   </div>
-                  <span className="text-lg font-bold font-headline text-emerald-500">${calc.amount.toFixed(2)}</span>
+                  <span className="text-lg font-bold font-headline text-emerald-500">₹{calc.amount.toLocaleString()}</span>
                 </div>
                 <div className="flex flex-col text-right">
                   <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Pay To</span>
@@ -66,7 +66,7 @@ export default function SettlementPage() {
                     <p className="text-[10px] text-muted-foreground">Completed Mar 12, 2024</p>
                   </div>
                 </div>
-                <p className="font-bold">$1,200.00</p>
+                <p className="font-bold">₹120,000</p>
              </div>
              <div className="flex items-center justify-between p-3 border-b last:border-0 opacity-70">
                 <div className="flex items-center gap-3">
@@ -76,7 +76,7 @@ export default function SettlementPage() {
                     <p className="text-[10px] text-muted-foreground">Completed Mar 10, 2024</p>
                   </div>
                 </div>
-                <p className="font-bold">$340.50</p>
+                <p className="font-bold">₹34,050</p>
              </div>
           </CardContent>
         </Card>

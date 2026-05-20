@@ -1,8 +1,9 @@
 import { ClanNode } from "@/types";
-import { ChevronRight, ChevronDown, User, Users, Shield } from "lucide-react";
+import { ChevronRight, ChevronDown, User, Users, Shield, Lock } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useUser } from "@/context/user-context";
 
 interface NestNodeCardProps {
   node: ClanNode;
@@ -10,9 +11,15 @@ interface NestNodeCardProps {
 }
 
 export function NestNodeCard({ node, depth = 0 }: NestNodeCardProps) {
+  const { userId } = useUser();
   const [isOpen, setIsOpen] = useState(true);
+  
   const hasSubNodes = node.sub_nodes && node.sub_nodes.length > 0;
   const hasMembers = node.members && node.members.length > 0;
+  
+  // Privacy logic: Only the manager can see sub-nodes or member names
+  const isManager = node.manager_id === userId;
+  const canSeeDetails = isManager || depth > 0;
 
   return (
     <div className={cn("space-y-2", depth > 0 && "indented-branch")}>
@@ -42,19 +49,24 @@ export function NestNodeCard({ node, depth = 0 }: NestNodeCardProps) {
             {node.manager_id && (
               <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                 <Shield className="h-3 w-3" />
-                <span>Managed by {node.manager_id}</span>
+                <span>Managed by {node.manager_id.split('_')[1]}</span>
               </div>
             )}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          {!canSeeDetails && depth === 0 && (
+            <Badge variant="outline" className="text-[10px] gap-1 opacity-60">
+              <Lock className="h-2 w-2" /> Private Clan
+            </Badge>
+          )}
           {node.default_shares && (
             <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/20">
               {node.default_shares} Shares
             </Badge>
           )}
-          {hasMembers && (
+          {hasMembers && canSeeDetails && (
             <Badge variant="outline" className="text-[10px]">
               {node.members?.length} Members
             </Badge>
@@ -62,7 +74,7 @@ export function NestNodeCard({ node, depth = 0 }: NestNodeCardProps) {
         </div>
       </div>
 
-      {isOpen && (
+      {isOpen && canSeeDetails && (
         <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
           {node.sub_nodes?.map((subNode) => (
             <NestNodeCard key={subNode.id} node={subNode} depth={depth + 1} />

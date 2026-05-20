@@ -10,7 +10,7 @@ export function BalanceOverview() {
           <Wallet className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">$4,285.50</div>
+          <div className="text-2xl font-bold font-headline">₹4,28,550</div>
           <p className="text-xs text-muted-foreground mt-1">
             Across 24 logged expenses
           </p>
@@ -23,7 +23,7 @@ export function BalanceOverview() {
           <ArrowDownLeft className="h-4 w-4 text-emerald-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline text-emerald-500">$842.20</div>
+          <div className="text-2xl font-bold font-headline text-emerald-500">₹84,220</div>
           <p className="text-xs text-muted-foreground mt-1">
             From Sanjeev's Family
           </p>
@@ -36,7 +36,7 @@ export function BalanceOverview() {
           <ArrowUpRight className="h-4 w-4 text-destructive" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline text-destructive">$120.00</div>
+          <div className="text-2xl font-bold font-headline text-destructive">₹12,000</div>
           <p className="text-xs text-muted-foreground mt-1">
             To Nitin Core Family
           </p>

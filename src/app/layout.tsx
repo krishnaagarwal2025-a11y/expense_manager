@@ -3,6 +3,7 @@ import './globals.css';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ClanSidebar } from "@/components/layout/clan-sidebar";
 import { Toaster } from "@/components/ui/toaster";
+import { UserProvider } from "@/context/user-context";
 
 export const metadata: Metadata = {
   title: 'ClanSplit | Nested Expense Management',
@@ -24,17 +25,19 @@ export default function RootLayout({
         <meta name="theme-color" content="#181B26" />
       </head>
       <body className="font-body">
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full">
-            <ClanSidebar />
-            <main className="flex-1 overflow-y-auto bg-background p-4 md:p-8">
-              <div className="mx-auto max-w-5xl space-y-8">
-                {children}
-              </div>
-            </main>
-          </div>
-        </SidebarProvider>
-        <Toaster />
+        <UserProvider>
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <ClanSidebar />
+              <main className="flex-1 overflow-y-auto bg-background p-4 md:p-8">
+                <div className="mx-auto max-w-5xl space-y-8">
+                  {children}
+                </div>
+              </main>
+            </div>
+          </SidebarProvider>
+          <Toaster />
+        </UserProvider>
       </body>
     </html>
   );

@@ -20,11 +20,13 @@ export const MOCK_TRIP: Trip = {
         {
           id: "node_nitin_core",
           display_name: "Nitin Core Family",
+          manager_id: "user_nitin",
           members: ["Nitin 1", "Nitin 2", "Nitin 3", "Nitin 4"]
         },
         {
           id: "node_nitin_cousins",
           display_name: "Cousins",
+          manager_id: "user_nitin",
           members: ["Cousin 1", "Cousin 2", "Cousin 3", "Cousin 4"]
         }
       ]
@@ -37,18 +39,24 @@ export const MOCK_EXPENSES: Expense[] = [
     id: "exp_1",
     trip_id: "trip-2026",
     description: "Grand Hotel Dinner",
-    amount: 350.50,
+    amount: 35000,
     date: "2024-03-15",
-    allocated_to: ["node_sanjeev_family", "node_nitin_clan"],
+    allocations: [
+      { node_id: "node_sanjeev_family", shares: 7, amount: 16333 },
+      { node_id: "node_nitin_clan", shares: 8, amount: 18667 }
+    ],
     payer_id: "node_sanjeev_family"
   },
   {
     id: "exp_2",
     trip_id: "trip-2026",
     description: "Airport Transfer - Nitin Group",
-    amount: 120.00,
+    amount: 5000,
     date: "2024-03-14",
-    allocated_to: ["node_nitin_core", "node_nitin_cousins"],
+    allocations: [
+      { node_id: "node_nitin_core", shares: 4, amount: 2500 },
+      { node_id: "node_nitin_cousins", shares: 4, amount: 2500 }
+    ],
     payer_id: "node_nitin_core"
   }
 ];
