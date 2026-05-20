@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { MOCK_EXPENSES, MOCK_TRIP } from "@/lib/mock-data";
-import { AIAllocationTool } from "@/components/expenses/ai-allocation-tool";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,25 +16,27 @@ import { useToast } from "@/hooks/use-toast";
 export default function ExpensesPage() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
   const { toast } = useToast();
 
   const handleCreateEntry = () => {
-    if (!amount || !selectedNode) {
+    if (!amount || !selectedNode || !description) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "Please provide an amount and select a target node."
+        description: "Please provide a description, amount, and select a target node."
       });
       return;
     }
 
     toast({
       title: "Expense Logged",
-      description: "Your entry has been added to the historical ledger.",
+      description: `Successfully logged "${description}" for $${amount}.`,
     });
     
     // Reset form
     setAmount("");
+    setDescription("");
     setSelectedNode(null);
   };
 
@@ -59,8 +60,16 @@ export default function ExpensesPage() {
               <CardTitle className="text-lg">Log New Charge</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <AIAllocationTool onAllocated={(id) => setSelectedNode(id)} />
-              
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Input 
+                  placeholder="e.g. Dinner at the Grand Hotel" 
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="bg-background" 
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>Amount</Label>
                 <Input 

@@ -1,4 +1,5 @@
+
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/smart-expense-allocation.ts';
+// Flows are imported here to be registered with Genkit
