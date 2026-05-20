@@ -7,14 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ReceiptText, Search, Download, Users, PlusCircle } from "lucide-react";
+import { ReceiptText, Search, Download, Users, PlusCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
 
 export default function ExpensesPage() {
   const { user } = useUser();
+  const [expenses, setExpenses] = useState(MOCK_EXPENSES);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [shares, setShares] = useState<Record<string, number>>({});
@@ -36,15 +36,40 @@ export default function ExpensesPage() {
       return;
     }
 
+    const totalShares = activeNodes.reduce((sum, [_, s]) => sum + s, 0);
+    const numAmount = parseFloat(amount);
+
+    const newExpense = {
+      id: `exp_${Date.now()}`,
+      trip_id: MOCK_TRIP.id,
+      description,
+      amount: numAmount,
+      date: new Date().toISOString().split('T')[0],
+      allocations: activeNodes.map(([nodeId, s]) => ({
+        node_id: nodeId,
+        shares: s,
+        amount: (numAmount * s) / totalShares
+      })),
+      payer_id: user === "sanjeev" ? "node_sanjeev_family" : "node_nitin_clan"
+    };
+
+    setExpenses([newExpense, ...expenses]);
     toast({
       title: "Expense Logged",
-      description: `Successfully logged "${description}" for ₹${parseFloat(amount).toLocaleString()}. Split across ${activeNodes.length} nodes.`,
+      description: `Successfully logged "${description}" for ₹${numAmount.toLocaleString()}.`,
     });
     
-    // Reset form
     setAmount("");
     setDescription("");
     setShares({});
+  };
+
+  const handleDeleteExpense = (id: string) => {
+    setExpenses(prev => prev.filter(e => e.id !== id));
+    toast({
+      title: "Expense Deleted",
+      description: "The transaction has been removed from the ledger.",
+    });
   };
 
   const handleExport = () => {
@@ -120,9 +145,6 @@ export default function ExpensesPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-muted-foreground italic px-1">
-                  * Totals are automatically calculated based on total shares entered.
-                </p>
               </div>
 
               <Button className="w-full mt-2 font-bold py-6 text-base" onClick={handleCreateEntry}>
@@ -136,7 +158,7 @@ export default function ExpensesPage() {
           <div className="flex items-center gap-2 p-3 bg-card/50 border border-border/50 rounded-xl shadow-sm">
             <Search className="h-5 w-5 text-muted-foreground ml-2" />
             <Input 
-              placeholder="Search expenses by vendor or description..." 
+              placeholder="Search expenses..." 
               className="border-0 bg-transparent focus-visible:ring-0 text-sm"
             />
           </div>
@@ -149,10 +171,11 @@ export default function ExpensesPage() {
                   <TableHead className="font-bold">Split Details</TableHead>
                   <TableHead className="font-bold">Payer</TableHead>
                   <TableHead className="text-right font-bold">Amount</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {MOCK_EXPENSES.map((expense) => (
+                {expenses.map((expense) => (
                   <TableRow key={expense.id} className="hover:bg-primary/5 transition-colors">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
@@ -173,7 +196,7 @@ export default function ExpensesPage() {
                               {a.node_id.split('_')[1].toUpperCase()}
                             </Badge>
                             <span className="text-[10px] text-muted-foreground font-medium">
-                              {a.shares} shares (₹{a.amount.toLocaleString()})
+                              ₹{a.amount.toLocaleString()}
                             </span>
                           </div>
                         ))}
@@ -185,10 +208,25 @@ export default function ExpensesPage() {
                     <TableCell className="text-right font-bold font-headline text-accent text-lg">
                       ₹{expense.amount.toLocaleString()}
                     </TableCell>
+                    <TableCell>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteExpense(expense.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {expenses.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                No expenses logged yet.
+              </div>
+            )}
           </Card>
         </div>
       </div>

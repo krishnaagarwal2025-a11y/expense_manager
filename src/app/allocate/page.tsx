@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MOCK_TRIP, MOCK_EXPENSES } from "@/lib/mock-data";
 import { useUser } from "@/context/user-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ReceiptText, Users, CheckCircle2, User as UserIcon } from "lucide-react";
+import { ReceiptText, Users, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -18,8 +17,13 @@ export default function AllocatePage() {
   const { toast } = useToast();
   const router = useRouter();
   
-  // State for member-level allocation: { [expenseId]: { [memberName]: { selected: boolean, shares: number } } }
-  const [memberAllocations, setMemberAllocations] = useState<Record<string, Record<string, { selected: boolean, shares: number }>>>({});
+  // Local state for expenses to handle "closing" items after allocation
+  const [localExpenses, setLocalExpenses] = useState(
+    MOCK_EXPENSES.filter(exp => exp.allocations.some(a => a.node_id === "node_nitin_clan"))
+  );
+
+  // State for member-level selection: { [expenseId]: { [memberName]: boolean } }
+  const [selectedMembers, setSelectedMembers] = useState<Record<string, Record<string, boolean>>>({});
 
   if (user !== "nitin") {
     return (
@@ -32,45 +36,23 @@ export default function AllocatePage() {
   }
 
   const nitinClan = MOCK_TRIP.nodes.find(n => n.id === "node_nitin_clan");
-  const pendingExpenses = MOCK_EXPENSES.filter(exp => 
-    exp.allocations.some(a => a.node_id === "node_nitin_clan")
-  );
 
   const handleToggleMember = (expId: string, member: string) => {
-    setMemberAllocations(prev => {
+    setSelectedMembers(prev => {
       const currentExp = prev[expId] || {};
-      const currentMember = currentExp[member] || { selected: false, shares: 1 };
-      
       return {
         ...prev,
         [expId]: {
           ...currentExp,
-          [member]: {
-            ...currentMember,
-            selected: !currentMember.selected
-          }
+          [member]: !currentExp[member]
         }
       };
     });
   };
 
-  const handleShareChange = (expId: string, member: string, shares: string) => {
-    const shareVal = parseInt(shares) || 0;
-    setMemberAllocations(prev => ({
-      ...prev,
-      [expId]: {
-        ...(prev[expId] || {}),
-        [member]: {
-          ...(prev[expId]?.[member] || { selected: true }),
-          shares: shareVal
-        }
-      }
-    }));
-  };
-
   const submitAllocation = (expId: string) => {
-    const allocations = memberAllocations[expId] || {};
-    const selectedCount = Object.values(allocations).filter(a => a.selected).length;
+    const selected = selectedMembers[expId] || {};
+    const selectedCount = Object.values(selected).filter(Boolean).length;
 
     if (selectedCount === 0) {
       toast({
@@ -81,9 +63,12 @@ export default function AllocatePage() {
       return;
     }
 
+    // Remove the expense from the pending list (it "closes")
+    setLocalExpenses(prev => prev.filter(e => e.id !== expId));
+    
     toast({
       title: "Allocation Confirmed",
-      description: `Successfully distributed within Nitin's Clan across ${selectedCount} members.`,
+      description: `Successfully distributed equally across ${selectedCount} clan members.`,
     });
   };
 
@@ -91,18 +76,17 @@ export default function AllocatePage() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header>
         <h1 className="text-3xl font-bold text-primary font-headline">Internal Clan Allocations</h1>
-        <p className="text-muted-foreground">Divide your clan's ₹ shares among core family and cousins</p>
+        <p className="text-muted-foreground">Divide your clan's ₹ shares equally among core family and cousins</p>
       </header>
 
       <div className="grid gap-6">
-        {pendingExpenses.map(expense => {
+        {localExpenses.map(expense => {
           const clanAllocation = expense.allocations.find(a => a.node_id === "node_nitin_clan");
           const amountToSplit = clanAllocation?.amount || 0;
           
-          const currentExpAlloc = memberAllocations[expense.id] || {};
-          const totalShares = Object.values(currentExpAlloc)
-            .filter(a => a.selected)
-            .reduce((sum, a) => sum + a.shares, 0);
+          const currentExpSelected = selectedMembers[expense.id] || {};
+          const selectedCount = Object.values(currentExpSelected).filter(Boolean).length;
+          const memberAmount = selectedCount > 0 ? (amountToSplit / selectedCount) : 0;
 
           return (
             <Card key={expense.id} className="border-accent/20 bg-card/50 overflow-hidden shadow-xl">
@@ -133,11 +117,7 @@ export default function AllocatePage() {
                     
                     <div className="grid sm:grid-cols-2 gap-4">
                       {subNode.members?.map(member => {
-                        const isSelected = currentExpAlloc[member]?.selected || false;
-                        const shares = currentExpAlloc[member]?.shares ?? 1;
-                        const memberAmount = totalShares > 0 && isSelected 
-                          ? (amountToSplit * (shares / totalShares)) 
-                          : 0;
+                        const isSelected = !!currentExpSelected[member];
 
                         return (
                           <div 
@@ -161,7 +141,7 @@ export default function AllocatePage() {
                                   {member}
                                 </Label>
                                 {isSelected && (
-                                   <div className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-medium">
+                                   <div className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-medium mt-1">
                                      <Badge variant="outline" className="h-4 px-1 text-[9px] border-emerald-500/30 text-emerald-500">
                                        ₹{memberAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                      </Badge>
@@ -169,18 +149,6 @@ export default function AllocatePage() {
                                 )}
                               </div>
                             </div>
-                            
-                            {isSelected && (
-                              <div className="flex flex-col items-end gap-1">
-                                <Label className="text-[9px] text-muted-foreground uppercase">Shares</Label>
-                                <Input 
-                                  type="number"
-                                  className="w-16 h-8 text-right bg-background border-primary/20"
-                                  value={shares}
-                                  onChange={(e) => handleShareChange(expense.id, member, e.target.value)}
-                                />
-                              </div>
-                            )}
                           </div>
                         );
                       })}
@@ -194,8 +162,8 @@ export default function AllocatePage() {
                       <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                     </div>
                     <div className="text-left">
-                      <p className="text-xs font-bold text-foreground">Internal Settlement</p>
-                      <p className="text-[10px] text-muted-foreground">Values are visible only to your clan managers.</p>
+                      <p className="text-xs font-bold text-foreground">Equal Distribution</p>
+                      <p className="text-[10px] text-muted-foreground">Amount is split equally among selected members.</p>
                     </div>
                   </div>
                   <Button 
@@ -210,10 +178,11 @@ export default function AllocatePage() {
           );
         })}
 
-        {pendingExpenses.length === 0 && (
+        {localExpenses.length === 0 && (
           <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-secondary/5 border-border/50">
             <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground font-medium">All clan expenses are fully allocated.</p>
+            <Button variant="link" className="mt-2 text-primary" onClick={() => router.push("/")}>Return to Dashboard</Button>
           </div>
         )}
       </div>
