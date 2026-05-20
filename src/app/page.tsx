@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/context/user-context";
 
 export default function Dashboard() {
-  const { user, setUser, userId } = useUser();
+  const { user, setUser } = useUser();
 
   if (!user) {
     return (
@@ -117,8 +117,8 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground">You have {needsAllocation.length} expenses to distribute within your core family and cousins.</p>
             </div>
           </div>
-          <Button size="sm" variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white">
-            Allocate Now
+          <Button size="sm" variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white" asChild>
+            <Link href="/allocate">Allocate Now</Link>
           </Button>
         </section>
       )}
@@ -141,7 +141,7 @@ export default function Dashboard() {
         </section>
 
         <section className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-bold font-headline">Recent Allocation</h2>
+          <h2 className="text-xl font-bold font-headline">Recent Activity</h2>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-semibold">Live Log</CardTitle>

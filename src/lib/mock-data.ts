@@ -39,24 +39,12 @@ export const MOCK_EXPENSES: Expense[] = [
     id: "exp_1",
     trip_id: "trip-2026",
     description: "Grand Hotel Dinner",
-    amount: 35000,
+    amount: 15000,
     date: "2024-03-15",
     allocations: [
-      { node_id: "node_sanjeev_family", shares: 7, amount: 16333 },
-      { node_id: "node_nitin_clan", shares: 8, amount: 18667 }
+      { node_id: "node_sanjeev_family", shares: 7, amount: 7000 },
+      { node_id: "node_nitin_clan", shares: 8, amount: 8000 }
     ],
     payer_id: "node_sanjeev_family"
-  },
-  {
-    id: "exp_2",
-    trip_id: "trip-2026",
-    description: "Airport Transfer - Nitin Group",
-    amount: 5000,
-    date: "2024-03-14",
-    allocations: [
-      { node_id: "node_nitin_core", shares: 4, amount: 2500 },
-      { node_id: "node_nitin_cousins", shares: 4, amount: 2500 }
-    ],
-    payer_id: "node_nitin_core"
   }
 ];

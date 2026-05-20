@@ -1,3 +1,5 @@
+"use client";
+
 import { ClanNode } from "@/types";
 import { ChevronRight, ChevronDown, User, Users, Shield, Lock } from "lucide-react";
 import { useState } from "react";
