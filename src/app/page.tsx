@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BalanceOverview } from "@/components/dashboard/balance-overview";
@@ -15,17 +16,23 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <div className="flex min-h-[70vh] flex-col items-center justify-center space-y-12 animate-in fade-in duration-500">
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl font-bold tracking-tight text-primary font-headline">Who is logging in?</h1>
-          <p className="text-muted-foreground text-lg">Select your profile to manage your group's shares and expenses.</p>
+      <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-12 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center space-y-4 max-w-lg">
+          <div className="mx-auto h-20 w-20 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-4xl mb-6 shadow-2xl shadow-primary/20">
+            C
+          </div>
+          <h1 className="text-5xl font-bold tracking-tight text-foreground font-headline">Welcome to ClanSplit</h1>
+          <p className="text-muted-foreground text-lg">Select your role to manage nested group expenses and family shares.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
           <Card 
-            className="group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-card/50"
+            className="group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-card/50 overflow-hidden relative"
             onClick={() => setUser("sanjeev")}
           >
+            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ArrowRight className="h-6 w-6 text-primary" />
+            </div>
             <CardContent className="flex flex-col items-center p-12 space-y-6">
               <div className="h-24 w-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                 <User className="h-12 w-12" />
@@ -34,14 +41,17 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold font-headline">Sanjeev</h2>
                 <p className="text-muted-foreground text-sm">Manager: Sanjeev's Family</p>
               </div>
-              <Button className="w-full font-semibold">Login as Sanjeev</Button>
+              <Button className="w-full font-bold h-12">Login as Sanjeev</Button>
             </CardContent>
           </Card>
 
           <Card 
-            className="group cursor-pointer border-2 border-transparent hover:border-accent/50 transition-all hover:shadow-2xl hover:shadow-accent/10 bg-card/50"
+            className="group cursor-pointer border-2 border-transparent hover:border-accent/50 transition-all hover:shadow-2xl hover:shadow-accent/10 bg-card/50 overflow-hidden relative"
             onClick={() => setUser("nitin")}
           >
+             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ArrowRight className="h-6 w-6 text-accent" />
+            </div>
             <CardContent className="flex flex-col items-center p-12 space-y-6">
               <div className="h-24 w-24 rounded-3xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
                 <Users className="h-12 w-12" />
@@ -50,7 +60,7 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold font-headline">Nitin</h2>
                 <p className="text-muted-foreground text-sm">Manager: Nitin's Clan</p>
               </div>
-              <Button variant="outline" className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold">Login as Nitin</Button>
+              <Button variant="outline" className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-bold h-12">Login as Nitin</Button>
             </CardContent>
           </Card>
         </div>
@@ -61,10 +71,9 @@ export default function Dashboard() {
   const userName = user === "sanjeev" ? "Sanjeev" : "Nitin";
   const ownClanId = user === "sanjeev" ? "node_sanjeev_family" : "node_nitin_clan";
 
-  // Filter expenses where this user's clan is involved and needs further sub-allocation
   const needsAllocation = MOCK_EXPENSES.filter(exp => 
     exp.allocations.some(a => a.node_id === ownClanId) && 
-    user === "nitin" // Nitin has sub-nodes to allocate to
+    user === "nitin"
   );
 
   return (
@@ -85,7 +94,7 @@ export default function Dashboard() {
               Switch User
             </Button>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Clan Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">Clan Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Managing <span className="text-accent font-semibold">{MOCK_TRIP.name}</span>
           </p>
@@ -107,17 +116,17 @@ export default function Dashboard() {
       <BalanceOverview />
 
       {user === "nitin" && needsAllocation.length > 0 && (
-        <section className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center justify-between">
+        <section className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center justify-between shadow-lg shadow-accent/5">
           <div className="flex items-center gap-4">
-            <div className="bg-accent/20 p-2 rounded-lg">
-              <Info className="h-5 w-5 text-accent" />
+            <div className="bg-accent/20 p-3 rounded-xl">
+              <Info className="h-6 w-6 text-accent" />
             </div>
             <div>
-              <p className="font-bold text-accent">Pending Clan Allocations</p>
+              <p className="font-bold text-accent text-lg">Pending Clan Allocations</p>
               <p className="text-xs text-muted-foreground">You have {needsAllocation.length} expenses to distribute within your core family and cousins.</p>
             </div>
           </div>
-          <Button size="sm" variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white" asChild>
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold px-6" asChild>
             <Link href="/allocate">Allocate Now</Link>
           </Button>
         </section>
@@ -126,10 +135,10 @@ export default function Dashboard() {
       <div className="grid gap-8 lg:grid-cols-5">
         <section className="lg:col-span-3 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold font-headline">Family Tree</h2>
+            <h2 className="text-xl font-bold font-headline">Family Structure</h2>
             <Button variant="link" size="sm" asChild>
               <Link href="/hierarchy" className="gap-1">
-                Edit Structure <ArrowRight className="h-3 w-3" />
+                View Hierarchy <ArrowRight className="h-3 w-3" />
               </Link>
             </Button>
           </div>
@@ -142,10 +151,12 @@ export default function Dashboard() {
 
         <section className="lg:col-span-2 space-y-4">
           <h2 className="text-xl font-bold font-headline">Recent Activity</h2>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Live Log</CardTitle>
-              <CardDescription>Real-time expense stream</CardDescription>
+          <Card className="border-border/50 bg-card/50 shadow-xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <History className="h-4 w-4 text-primary" />
+                Live Transaction Log
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {MOCK_EXPENSES.map((expense) => (
@@ -167,7 +178,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full mt-4 text-xs font-semibold" asChild>
+              <Button variant="outline" className="w-full mt-4 text-xs font-bold py-5" asChild>
                 <Link href="/expenses">View All Expenses</Link>
               </Button>
             </CardContent>

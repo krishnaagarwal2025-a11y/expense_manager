@@ -1,6 +1,7 @@
+
 "use client";
 
-import { Home, ListOrdered, TreePine, CreditCard, Settings, PlusCircle, Split } from "lucide-react";
+import { Home, ListOrdered, TreePine, CreditCard, Settings, PlusCircle, Split, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,12 +12,13 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { useUser } from "@/context/user-context";
 
 export function ClanSidebar() {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/" },
@@ -42,46 +44,64 @@ export function ClanSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild tooltip={item.label}>
-                    <Link href={item.href} className="flex items-center gap-3">
-                      <item.icon className="h-4 w-4" />
-                      <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {user && (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Navigation</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton asChild tooltip={item.label}>
+                        <Link href={item.href} className="flex items-center gap-3">
+                          <item.icon className="h-4 w-4" />
+                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
 
-        <SidebarGroup className="mt-auto group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton className="text-primary hover:text-primary" asChild>
-                  <Link href="/expenses">
-                    <PlusCircle className="h-4 w-4" />
-                    <span>New Expense</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+            <SidebarGroup className="mt-auto group-data-[collapsible=icon]:hidden">
+              <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton className="text-primary hover:text-primary" asChild>
+                      <Link href="/expenses">
+                        <PlusCircle className="h-4 w-4" />
+                        <span>New Expense</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
+      {user && (
+        <SidebarFooter className="p-4 group-data-[collapsible=icon]:hidden">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            onClick={() => setUser(null)}
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }
+
+import { Button } from "@/components/ui/button";
