@@ -1,4 +1,3 @@
-
 "use client";
 
 import { BalanceOverview } from "@/components/dashboard/balance-overview";
@@ -38,7 +37,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
           <Card 
-            className="group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-card/50 overflow-hidden relative"
+            className="group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-card overflow-hidden relative"
             onClick={() => setUser("sanjeev")}
           >
             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -57,7 +56,7 @@ export default function Dashboard() {
           </Card>
 
           <Card 
-            className="group cursor-pointer border-2 border-transparent hover:border-accent/50 transition-all hover:shadow-2xl hover:shadow-accent/10 bg-card/50 overflow-hidden relative"
+            className="group cursor-pointer border-2 border-transparent hover:border-accent/50 transition-all hover:shadow-2xl hover:shadow-accent/10 bg-card overflow-hidden relative"
             onClick={() => setUser("nitin")}
           >
              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -127,7 +126,7 @@ export default function Dashboard() {
       <BalanceOverview expenses={expenses} />
 
       {user === "nitin" && needsAllocation.length > 0 && (
-        <section className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center justify-between shadow-lg shadow-accent/5">
+        <section className="bg-accent/10 border border-accent/20 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-accent/5">
           <div className="flex items-center gap-4">
             <div className="bg-accent/20 p-3 rounded-xl">
               <Info className="h-6 w-6 text-accent" />
@@ -157,7 +156,7 @@ export default function Dashboard() {
 
         <section className="lg:col-span-2 space-y-4">
           <h2 className="text-xl font-bold font-headline">Recent Activity</h2>
-          <Card className="border-border/50 bg-card/50 shadow-xl">
+          <Card className="border-border/50 bg-card shadow-xl rounded-2xl">
             <CardHeader className="pb-4">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <History className="h-4 w-4 text-primary" />
