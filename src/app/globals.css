@@ -4,34 +4,35 @@
 
 @layer base {
   :root {
-    --background: 40 40% 98%; /* Warm cream */
-    --foreground: 24 20% 10%; /* Deep charcoal brown */
+    --background: 180 8% 96%; /* Soft Off-White #F4F6F6 */
+    --foreground: 210 29% 24%; /* Dark Slate #2C3E50 */
     --card: 0 0% 100%;
-    --card-foreground: 24 20% 10%;
+    --card-foreground: 210 29% 24%;
     --popover: 0 0% 100%;
-    --popover-foreground: 24 20% 10%;
-    --primary: 28 100% 50%; /* Saffron Orange */
+    --popover-foreground: 210 29% 24%;
+    --primary: 18 100% 41%; /* Deep Saffron/Marigold #D35400 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 48 100% 96%; /* Pale Marigold */
-    --secondary-foreground: 28 80% 20%;
-    --muted: 40 20% 94%;
-    --muted-foreground: 24 10% 45%;
-    --accent: 346 84% 61%; /* Festive Indian Pink / Rose */
+    --secondary: 204 62% 28%; /* Deep Navy Blue #1B4F72 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 180 8% 92%;
+    --muted-foreground: 210 20% 45%;
+    --accent: 18 100% 41%; /* Using Saffron as accent too */
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 28 30% 88%;
-    --input: 28 30% 88%;
-    --ring: 28 100% 50%;
-    --radius: 1rem;
-    --sidebar-background: 40 40% 98%;
-    --sidebar-foreground: 24 20% 10%;
-    --sidebar-primary: 28 100% 50%;
+    --destructive: 6 58% 43%; /* Deep Crimson #B03A2E */
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 18 100% 41%;
+    --radius: 0.75rem;
+    
+    --sidebar-background: 204 62% 28%; /* Navy Blue for trust */
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 18 100% 41%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 48 100% 94%;
-    --sidebar-accent-foreground: 28 80% 20%;
-    --sidebar-border: 28 30% 88%;
-    --sidebar-ring: 28 100% 50%;
+    --sidebar-accent: 18 100% 41%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 204 62% 35%;
+    --sidebar-ring: 18 100% 41%;
   }
 }
 
@@ -64,4 +65,12 @@
 
 .financial-figure {
   @apply font-body font-medium tabular-nums;
+}
+
+.success-text {
+  color: #196F3D;
+}
+
+.error-text {
+  color: #B03A2E;
 }

@@ -28,49 +28,49 @@ export default function Dashboard() {
     return (
       <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-12 animate-in fade-in duration-500">
         <div className="text-center space-y-4 max-w-lg">
-          <div className="mx-auto h-20 w-20 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-4xl mb-6 shadow-2xl shadow-primary/20">
+          <div className="mx-auto h-24 w-24 rounded-3xl bg-secondary flex items-center justify-center text-white font-bold text-5xl mb-8 shadow-2xl shadow-secondary/20">
             C
           </div>
-          <h1 className="text-5xl font-bold tracking-tight text-foreground font-headline">Welcome to ClanSplit</h1>
-          <p className="text-muted-foreground text-lg">Select your role to manage nested group expenses and family shares.</p>
+          <h1 className="text-5xl font-bold tracking-tight text-secondary font-headline">ClanSplit</h1>
+          <p className="text-muted-foreground text-lg px-6">Manage religious trip expenses with your family and cousins with complete transparency.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
           <Card 
-            className="group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-card overflow-hidden relative"
+            className="group cursor-pointer border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-white overflow-hidden relative shadow-md"
             onClick={() => setUser("sanjeev")}
           >
             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
               <ArrowRight className="h-6 w-6 text-primary" />
             </div>
             <CardContent className="flex flex-col items-center p-12 space-y-6">
-              <div className="h-24 w-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
                 <User className="h-12 w-12" />
               </div>
               <div className="text-center">
-                <h2 className="text-2xl font-bold font-headline">Sanjeev</h2>
-                <p className="text-muted-foreground text-sm">Manager: Sanjeev's Family</p>
+                <h2 className="text-2xl font-bold font-headline text-secondary">Sanjeev</h2>
+                <p className="text-muted-foreground text-sm font-medium">Sanjeev's Family</p>
               </div>
-              <Button className="w-full font-bold h-12">Login as Sanjeev</Button>
+              <Button className="w-full font-bold h-12 rounded-xl bg-primary text-white hover:bg-primary/90">Continue as Sanjeev</Button>
             </CardContent>
           </Card>
 
           <Card 
-            className="group cursor-pointer border-2 border-transparent hover:border-accent/50 transition-all hover:shadow-2xl hover:shadow-accent/10 bg-card overflow-hidden relative"
+            className="group cursor-pointer border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-white overflow-hidden relative shadow-md"
             onClick={() => setUser("nitin")}
           >
              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ArrowRight className="h-6 w-6 text-accent" />
+              <ArrowRight className="h-6 w-6 text-primary" />
             </div>
             <CardContent className="flex flex-col items-center p-12 space-y-6">
-              <div className="h-24 w-24 rounded-3xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
+              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
                 <Users className="h-12 w-12" />
               </div>
               <div className="text-center">
-                <h2 className="text-2xl font-bold font-headline">Nitin</h2>
-                <p className="text-muted-foreground text-sm">Manager: Nitin's Clan</p>
+                <h2 className="text-2xl font-bold font-headline text-secondary">Nitin</h2>
+                <p className="text-muted-foreground text-sm font-medium">Nitin's Clan</p>
               </div>
-              <Button variant="outline" className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-bold h-12">Login as Nitin</Button>
+              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-white font-bold h-12 rounded-xl">Continue as Nitin</Button>
             </CardContent>
           </Card>
         </div>
@@ -88,36 +88,36 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 pb-12 animate-in slide-in-from-bottom-2 duration-500">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-8">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 py-0.5">
-              Logged in as {userName}
+          <div className="flex items-center gap-3 mb-2">
+            <Badge className="bg-primary/10 text-primary border-primary/20 font-bold px-3 py-1 rounded-full text-[10px] uppercase tracking-wider">
+              {userName}'s Dashboard
             </Badge>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 text-[10px] gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="h-7 text-[10px] gap-1 text-muted-foreground hover:text-destructive font-bold uppercase tracking-widest"
               onClick={() => setUser(null)}
             >
               <LogOut className="h-3 w-3" />
-              Switch User
+              Switch Profile
             </Button>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">Clan Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Managing <span className="text-accent font-semibold">{MOCK_TRIP.name}</span>
+          <h1 className="text-4xl font-bold tracking-tight text-secondary font-headline">Financial Overview</h1>
+          <p className="text-muted-foreground mt-1 flex items-center gap-2 font-medium">
+            Family Trip: <span className="text-primary font-bold">{MOCK_TRIP.name}</span>
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="sm" className="gap-2">
-            <History className="h-4 w-4" />
-            Activity Log
+          <Button variant="outline" size="lg" className="gap-2 border-secondary/20 text-secondary hover:bg-secondary/5 font-bold rounded-xl">
+            <History className="h-5 w-5" />
+            History
           </Button>
-          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20" asChild>
+          <Button size="lg" className="gap-2 bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary/90 font-bold rounded-xl" asChild>
             <Link href="/expenses">
-              <Plus className="h-4 w-4" />
-              Log Expense
+              <Plus className="h-5 w-5" />
+              Record Expense
             </Link>
           </Button>
         </div>
@@ -126,26 +126,26 @@ export default function Dashboard() {
       <BalanceOverview expenses={expenses} />
 
       {user === "nitin" && needsAllocation.length > 0 && (
-        <section className="bg-accent/10 border border-accent/20 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-accent/5">
-          <div className="flex items-center gap-4">
-            <div className="bg-accent/20 p-3 rounded-xl">
-              <Info className="h-6 w-6 text-accent" />
+        <section className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-primary/5">
+          <div className="flex items-center gap-5">
+            <div className="bg-primary/20 p-4 rounded-2xl">
+              <Info className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <p className="font-bold text-accent text-lg">Pending Clan Allocations</p>
-              <p className="text-xs text-muted-foreground">You have {needsAllocation.length} expenses to distribute within your core family and cousins.</p>
+              <p className="font-bold text-secondary text-xl">Pending Internal Allocations</p>
+              <p className="text-sm text-muted-foreground font-medium">You have {needsAllocation.length} expenses waiting to be distributed within your clan members.</p>
             </div>
           </div>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold px-6" asChild>
-            <Link href="/allocate">Allocate Now</Link>
+          <Button size="lg" className="bg-primary text-white hover:bg-primary/90 font-bold px-8 rounded-xl" asChild>
+            <Link href="/allocate">Start Allocation</Link>
           </Button>
         </section>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-5">
-        <section className="lg:col-span-3 space-y-4">
+      <div className="grid gap-10 lg:grid-cols-5">
+        <section className="lg:col-span-3 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold font-headline">Family Structure</h2>
+            <h2 className="text-2xl font-bold font-headline text-secondary">Family Hierarchy</h2>
           </div>
           <div className="space-y-4">
             {MOCK_TRIP.nodes.map((node) => (
@@ -154,40 +154,40 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-bold font-headline">Recent Activity</h2>
-          <Card className="border-border/50 bg-card shadow-xl rounded-2xl">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <History className="h-4 w-4 text-primary" />
+        <section className="lg:col-span-2 space-y-6">
+          <h2 className="text-2xl font-bold font-headline text-secondary">Recent Charges</h2>
+          <Card className="border-none bg-white shadow-xl rounded-3xl overflow-hidden">
+            <CardHeader className="bg-secondary/5 pb-6 border-b border-secondary/10">
+              <CardTitle className="text-sm font-bold flex items-center gap-3 text-secondary uppercase tracking-widest">
+                <History className="h-5 w-5 text-primary" />
                 Live Transaction Log
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-6 space-y-6">
               {expenses.slice(0, 5).map((expense) => (
-                <div key={expense.id} className="flex items-start justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{expense.description}</p>
+                <div key={expense.id} className="flex items-start justify-between border-b border-secondary/5 pb-6 last:border-0 last:pb-0">
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-bold text-secondary">{expense.description}</p>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
+                      <span className="text-[10px] bg-secondary/10 px-2 py-0.5 rounded-full font-bold text-secondary/70">
                         {expense.date}
                       </span>
-                      <span className="text-[10px] text-accent">
-                        Split with {expense.allocations.length} groups
+                      <span className="text-[10px] text-primary font-bold uppercase tracking-tighter">
+                        {expense.allocations.length} Group Split
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold font-headline">₹{expense.amount.toLocaleString()}</p>
-                    <p className="text-[10px] text-muted-foreground">Paid by {expense.payer_id.split('_')[1]}</p>
+                    <p className="text-lg font-bold font-headline text-secondary">₹{expense.amount.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase">By {expense.payer_id.split('_')[1]}</p>
                   </div>
                 </div>
               ))}
               {expenses.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">No recent activity.</p>
+                <p className="text-xs text-muted-foreground text-center py-8 font-medium">No transactions recorded yet.</p>
               )}
-              <Button variant="outline" className="w-full mt-4 text-xs font-bold py-5" asChild>
-                <Link href="/expenses">View All Expenses</Link>
+              <Button variant="ghost" className="w-full mt-4 text-primary font-bold py-6 hover:bg-primary/5 rounded-xl text-sm" asChild>
+                <Link href="/expenses">View Full Ledger</Link>
               </Button>
             </CardContent>
           </Card>
