@@ -35,24 +35,53 @@ export default function ExpensesPage() {
   const { data: expenses = [] } = useCollection<Expense>(expensesQuery);
 
   const handleShareChange = (nodeId: string, val: string) => {
-    setShares(prev => ({ ...prev, [nodeId]: parseInt(val) || 0 }));
+    const num = parseInt(val);
+    // Error handling: Prevent negative shares
+    if (num < 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Share",
+        description: "Shares cannot be negative."
+      });
+      return;
+    }
+    setShares(prev => ({ ...prev, [nodeId]: num || 0 }));
   };
 
   const handleCreateEntry = () => {
     if (!db) return;
     const activeNodes = Object.entries(shares).filter(([_, s]) => s > 0);
     
-    if (!amount || !description || activeNodes.length === 0) {
+    // Error handling: Negative or zero amount
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
       toast({
         variant: "destructive",
-        title: "Missing Information",
-        description: "Please provide a description, amount, and at least one share allocation."
+        title: "Invalid Amount",
+        description: "Please enter a positive amount for the expense."
+      });
+      return;
+    }
+
+    if (!description.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Missing Description",
+        description: "Please provide a brief description of the expense."
+      });
+      return;
+    }
+
+    if (activeNodes.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Allocation Required",
+        description: "Please assign at least one share to a group."
       });
       return;
     }
 
     const totalShares = activeNodes.reduce((sum, [_, s]) => sum + s, 0);
-    const numAmount = parseFloat(amount);
     const expenseId = `exp_${Date.now()}`;
     const expenseRef = doc(db, "trips", "trip-2026", "expenses", expenseId);
 
@@ -146,6 +175,8 @@ export default function ExpensesPage() {
                   <Input 
                     type="number" 
                     placeholder="0.00" 
+                    min="0.01"
+                    step="0.01"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="bg-background border-border/50 pl-7" 
@@ -165,6 +196,7 @@ export default function ExpensesPage() {
                       <Input 
                         type="number" 
                         placeholder="0"
+                        min="0"
                         className="w-20 h-8 text-right text-xs bg-background border-border/30"
                         value={shares[n.id] || ""}
                         onChange={(e) => handleShareChange(n.id, e.target.value)}

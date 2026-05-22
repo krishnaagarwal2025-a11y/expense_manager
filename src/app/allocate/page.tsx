@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ReceiptText, Users, CheckCircle2, ListChecks } from "lucide-react";
+import { ReceiptText, Users, CheckCircle2, ListChecks, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -17,6 +17,7 @@ import { collection, doc, updateDoc } from "firebase/firestore";
 import { Expense } from "@/types";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AllocatePage() {
   const { user } = useUser();
@@ -85,11 +86,12 @@ export default function AllocatePage() {
       .filter(([_, isSelected]) => isSelected)
       .map(([name]) => name);
 
-    if (selectedList.length === 0) {
+    // Strict validation: Exactly 7 members
+    if (selectedList.length !== 7) {
       toast({
         variant: "destructive",
-        title: "No Members Selected",
-        description: "Please select at least one clan member to allocate the expense.",
+        title: "Invalid Member Count",
+        description: `You must select exactly 7 members for the split. Currently selected: ${selectedList.length}.`,
       });
       return;
     }
@@ -124,6 +126,14 @@ export default function AllocatePage() {
         <h1 className="text-3xl font-bold text-primary font-headline">Internal Clan Allocations</h1>
         <p className="text-muted-foreground">Divide your clan's ₹ shares equally among core family and cousins</p>
       </header>
+
+      <Alert variant="destructive" className="bg-destructive/10 border-destructive/20">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Selection Rule</AlertTitle>
+        <AlertDescription>
+          For every allocation, you must select **exactly 7 members** from your clan to participate in the split.
+        </AlertDescription>
+      </Alert>
 
       <div className="grid gap-6">
         {pendingExpenses.map(expense => {
@@ -235,12 +245,14 @@ export default function AllocatePage() {
                 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${selectedCount === 7 ? 'bg-emerald-500/10' : 'bg-destructive/10'}`}>
+                      {selectedCount === 7 ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <AlertCircle className="h-5 w-5 text-destructive" />}
                     </div>
                     <div className="text-left">
-                      <p className="text-xs font-bold text-foreground">Equal Distribution</p>
-                      <p className="text-[10px] text-muted-foreground">Amount is split equally among selected members.</p>
+                      <p className={`text-xs font-bold ${selectedCount === 7 ? 'text-emerald-500' : 'text-destructive'}`}>
+                        {selectedCount} of 7 Selected
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">Exactly 7 members must be selected to split.</p>
                     </div>
                   </div>
                   <Button 
