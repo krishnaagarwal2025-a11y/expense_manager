@@ -1,6 +1,6 @@
 
 "use client";
-
+import { Badge } from "@/components/ui/badge"
 import { BalanceOverview } from "@/components/dashboard/balance-overview";
 import { NestNodeCard } from "@/components/clan/nest-node-card";
 import { MOCK_TRIP } from "@/lib/mock-data";
