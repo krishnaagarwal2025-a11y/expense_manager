@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from "react";
-import { MOCK_TRIP, MOCK_EXPENSES } from "@/lib/mock-data";
+import { MOCK_TRIP } from "@/lib/mock-data";
 import { useUser } from "@/context/user-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,15 +12,28 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ReceiptText, Users, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc, updateDoc } from "firebase/firestore";
+import { Expense } from "@/types";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function AllocatePage() {
   const { user } = useUser();
+  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   
-  // Local state for expenses to handle "closing" items after allocation
-  const [localExpenses, setLocalExpenses] = useState(
-    MOCK_EXPENSES.filter(exp => exp.allocations.some(a => a.node_id === "node_nitin_clan"))
+  const expensesQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, "trips", "trip-2026", "expenses");
+  }, [db]);
+
+  const { data: allExpenses = [] } = useCollection<Expense>(expensesQuery);
+
+  // Filter expenses that have a Nitin Clan allocation but haven't been internally allocated yet
+  const pendingExpenses = allExpenses.filter(exp => 
+    exp.allocations.some(a => a.node_id === "node_nitin_clan" && (!a.internal_allocations || a.internal_allocations.length === 0))
   );
 
   // State for member-level selection: { [expenseId]: { [memberName]: boolean } }
@@ -50,11 +64,14 @@ export default function AllocatePage() {
     });
   };
 
-  const submitAllocation = (expId: string) => {
-    const selected = selectedMembers[expId] || {};
-    const selectedCount = Object.values(selected).filter(Boolean).length;
+  const submitAllocation = (expense: Expense) => {
+    if (!db) return;
+    const selected = selectedMembers[expense.id] || {};
+    const selectedList = Object.entries(selected)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([name]) => name);
 
-    if (selectedCount === 0) {
+    if (selectedList.length === 0) {
       toast({
         variant: "destructive",
         title: "No Members Selected",
@@ -63,12 +80,27 @@ export default function AllocatePage() {
       return;
     }
 
-    // Remove the expense from the pending list (it "closes")
-    setLocalExpenses(prev => prev.filter(e => e.id !== expId));
+    // Update the expense in Firestore
+    const expenseRef = doc(db, "trips", "trip-2026", "expenses", expense.id);
+    const updatedAllocations = expense.allocations.map(a => {
+      if (a.node_id === "node_nitin_clan") {
+        return { ...a, internal_allocations: selectedList };
+      }
+      return a;
+    });
+
+    updateDoc(expenseRef, { allocations: updatedAllocations })
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: expenseRef.path,
+          operation: 'update',
+          requestResourceData: { allocations: updatedAllocations },
+        }));
+      });
     
     toast({
       title: "Allocation Confirmed",
-      description: `Successfully distributed equally across ${selectedCount} clan members.`,
+      description: `Successfully distributed equally across ${selectedList.length} clan members.`,
     });
   };
 
@@ -80,7 +112,7 @@ export default function AllocatePage() {
       </header>
 
       <div className="grid gap-6">
-        {localExpenses.map(expense => {
+        {pendingExpenses.map(expense => {
           const clanAllocation = expense.allocations.find(a => a.node_id === "node_nitin_clan");
           const amountToSplit = clanAllocation?.amount || 0;
           
@@ -167,7 +199,7 @@ export default function AllocatePage() {
                     </div>
                   </div>
                   <Button 
-                    onClick={() => submitAllocation(expense.id)}
+                    onClick={() => submitAllocation(expense)}
                     className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 font-bold px-8 py-6 rounded-xl shadow-lg shadow-accent/20"
                   >
                     Confirm Sub-Allocation
@@ -178,7 +210,7 @@ export default function AllocatePage() {
           );
         })}
 
-        {localExpenses.length === 0 && (
+        {pendingExpenses.length === 0 && (
           <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-secondary/5 border-border/50">
             <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground font-medium">All clan expenses are fully allocated.</p>

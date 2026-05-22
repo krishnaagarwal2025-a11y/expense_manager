@@ -3,16 +3,27 @@
 
 import { BalanceOverview } from "@/components/dashboard/balance-overview";
 import { NestNodeCard } from "@/components/clan/nest-node-card";
-import { MOCK_TRIP, MOCK_EXPENSES } from "@/lib/mock-data";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { MOCK_TRIP } from "@/lib/mock-data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, History, ArrowRight, User, Users, LogOut, Info } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/context/user-context";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
+import { Expense } from "@/types";
 
 export default function Dashboard() {
   const { user, setUser } = useUser();
+  const db = useFirestore();
+
+  const expensesQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, "trips", "trip-2026", "expenses");
+  }, [db]);
+
+  const { data: expenses = [] } = useCollection<Expense>(expensesQuery);
 
   if (!user) {
     return (
@@ -71,8 +82,8 @@ export default function Dashboard() {
   const userName = user === "sanjeev" ? "Sanjeev" : "Nitin";
   const ownClanId = user === "sanjeev" ? "node_sanjeev_family" : "node_nitin_clan";
 
-  const needsAllocation = MOCK_EXPENSES.filter(exp => 
-    exp.allocations.some(a => a.node_id === ownClanId) && 
+  const needsAllocation = expenses.filter(exp => 
+    exp.allocations.some(a => a.node_id === ownClanId && (!a.internal_allocations || a.internal_allocations.length === 0)) && 
     user === "nitin"
   );
 
@@ -113,7 +124,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <BalanceOverview />
+      <BalanceOverview expenses={expenses} />
 
       {user === "nitin" && needsAllocation.length > 0 && (
         <section className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center justify-between shadow-lg shadow-accent/5">
@@ -159,7 +170,7 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {MOCK_EXPENSES.map((expense) => (
+              {expenses.slice(0, 5).map((expense) => (
                 <div key={expense.id} className="flex items-start justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{expense.description}</p>
@@ -178,6 +189,9 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
+              {expenses.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">No recent activity.</p>
+              )}
               <Button variant="outline" className="w-full mt-4 text-xs font-bold py-5" asChild>
                 <Link href="/expenses">View All Expenses</Link>
               </Button>

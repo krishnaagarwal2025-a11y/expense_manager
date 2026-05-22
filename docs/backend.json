@@ -1,0 +1,66 @@
+
+{
+  "entities": {
+    "Trip": {
+      "title": "Trip",
+      "description": "A trip object containing clan structure.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "nodes": { "type": "array", "items": { "$ref": "#/backend/entities/ClanNode" } }
+      },
+      "required": ["id", "name", "nodes"]
+    },
+    "ClanNode": {
+      "title": "ClanNode",
+      "description": "A node in the family hierarchy.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "manager_id": { "type": "string" },
+        "default_shares": { "type": "number" },
+        "members": { "type": "array", "items": { "type": "string" } },
+        "sub_nodes": { "type": "array", "items": { "$ref": "#/backend/entities/ClanNode" } }
+      }
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "A recorded transaction.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "payer_id": { "type": "string" },
+        "allocations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "node_id": { "type": "string" },
+              "shares": { "type": "number" },
+              "amount": { "type": "number" },
+              "internal_allocations": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/trips/{tripId}": {
+      "schema": "Trip",
+      "description": "Trip configuration and hierarchy."
+    },
+    "/trips/{tripId}/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Expenses logged for a specific trip."
+    }
+  }
+}

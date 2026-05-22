@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from "react";
-import { MOCK_EXPENSES, MOCK_TRIP } from "@/lib/mock-data";
+import { MOCK_TRIP } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -11,20 +12,34 @@ import { Button } from "@/components/ui/button";
 import { ReceiptText, Search, Download, Users, PlusCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
+import { Expense } from "@/types";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function ExpensesPage() {
   const { user } = useUser();
-  const [expenses, setExpenses] = useState(MOCK_EXPENSES);
+  const db = useFirestore();
+  const { toast } = useToast();
+
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [shares, setShares] = useState<Record<string, number>>({});
-  const { toast } = useToast();
+
+  const expensesQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, "trips", "trip-2026", "expenses");
+  }, [db]);
+
+  const { data: expenses = [] } = useCollection<Expense>(expensesQuery);
 
   const handleShareChange = (nodeId: string, val: string) => {
     setShares(prev => ({ ...prev, [nodeId]: parseInt(val) || 0 }));
   };
 
   const handleCreateEntry = () => {
+    if (!db) return;
     const activeNodes = Object.entries(shares).filter(([_, s]) => s > 0);
     
     if (!amount || !description || activeNodes.length === 0) {
@@ -38,10 +53,12 @@ export default function ExpensesPage() {
 
     const totalShares = activeNodes.reduce((sum, [_, s]) => sum + s, 0);
     const numAmount = parseFloat(amount);
+    const expenseId = `exp_${Date.now()}`;
+    const expenseRef = doc(db, "trips", "trip-2026", "expenses", expenseId);
 
-    const newExpense = {
-      id: `exp_${Date.now()}`,
-      trip_id: MOCK_TRIP.id,
+    const newExpense: Expense = {
+      id: expenseId,
+      trip_id: "trip-2026",
       description,
       amount: numAmount,
       date: new Date().toISOString().split('T')[0],
@@ -53,7 +70,15 @@ export default function ExpensesPage() {
       payer_id: user === "sanjeev" ? "node_sanjeev_family" : "node_nitin_clan"
     };
 
-    setExpenses([newExpense, ...expenses]);
+    setDoc(expenseRef, newExpense)
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: expenseRef.path,
+          operation: 'create',
+          requestResourceData: newExpense,
+        }));
+      });
+
     toast({
       title: "Expense Logged",
       description: `Successfully logged "${description}" for ₹${numAmount.toLocaleString()}.`,
@@ -65,17 +90,19 @@ export default function ExpensesPage() {
   };
 
   const handleDeleteExpense = (id: string) => {
-    setExpenses(prev => prev.filter(e => e.id !== id));
+    if (!db) return;
+    const expenseRef = doc(db, "trips", "trip-2026", "expenses", id);
+    deleteDoc(expenseRef)
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: expenseRef.path,
+          operation: 'delete',
+        }));
+      });
+
     toast({
       title: "Expense Deleted",
       description: "The transaction has been removed from the ledger.",
-    });
-  };
-
-  const handleExport = () => {
-    toast({
-      title: "Export Started",
-      description: "Generating your CSV export of the trip ledger...",
     });
   };
 
@@ -86,7 +113,7 @@ export default function ExpensesPage() {
           <h1 className="text-3xl font-bold text-primary font-headline">Expense Logs</h1>
           <p className="text-muted-foreground">Historical ledger of all trip transactions</p>
         </div>
-        <Button variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={handleExport}>
+        <Button variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={() => toast({ title: "Export Started" })}>
           <Download className="h-4 w-4" />
           Export CSV
         </Button>

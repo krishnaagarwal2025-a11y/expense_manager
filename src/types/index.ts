@@ -1,3 +1,4 @@
+
 export type Member = string;
 
 export interface ClanNode {
@@ -19,6 +20,7 @@ export interface ExpenseAllocation {
   node_id: string;
   shares: number;
   amount: number;
+  internal_allocations?: string[]; // Added to track members selected internally
 }
 
 export interface Expense {
