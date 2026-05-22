@@ -110,9 +110,11 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="lg" className="gap-2 border-secondary/20 text-secondary hover:bg-secondary/5 font-bold rounded-xl">
-            <History className="h-5 w-5" />
-            History
+          <Button variant="outline" size="lg" className="gap-2 border-secondary/20 text-secondary hover:bg-secondary/5 font-bold rounded-xl" asChild>
+            <Link href="/expenses">
+              <History className="h-5 w-5" />
+              History
+            </Link>
           </Button>
           <Button size="lg" className="gap-2 bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary/90 font-bold rounded-xl" asChild>
             <Link href="/expenses">
