@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -16,6 +17,7 @@ import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
 import { Expense } from "@/types";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { downloadExpensesCSV } from "@/lib/export";
 
 export default function ExpensesPage() {
   const { user } = useUser();
@@ -132,6 +134,23 @@ export default function ExpensesPage() {
     });
   };
 
+  const handleExport = () => {
+    if (expenses.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Data",
+        description: "There are no expenses recorded to export.",
+      });
+      return;
+    }
+    
+    downloadExpensesCSV(expenses);
+    toast({
+      title: "Export Success",
+      description: "Your trip expense CSV file has been downloaded.",
+    });
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -139,7 +158,7 @@ export default function ExpensesPage() {
           <h1 className="text-3xl font-bold text-primary font-headline">Expense Logs</h1>
           <p className="text-muted-foreground text-sm">Historical ledger of all trip transactions</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2 border-primary/20 hover:bg-primary/5 w-full sm:w-auto" onClick={() => toast({ title: "Export Started" })}>
+        <Button variant="outline" size="sm" className="gap-2 border-primary/20 hover:bg-primary/5 w-full sm:w-auto" onClick={handleExport}>
           <Download className="h-4 w-4" />
           Export CSV
         </Button>

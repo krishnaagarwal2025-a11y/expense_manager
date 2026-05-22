@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BalanceOverview } from "@/components/dashboard/balance-overview";
@@ -13,6 +14,7 @@ import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { Expense } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { downloadExpensesCSV } from "@/lib/export";
 
 export default function Dashboard() {
   const { user, setUser } = useUser();
@@ -89,9 +91,19 @@ export default function Dashboard() {
   );
 
   const handleExport = () => {
+    if (expenses.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Data",
+        description: "There are no expenses recorded to export.",
+      });
+      return;
+    }
+    
+    downloadExpensesCSV(expenses);
     toast({
-      title: "Export Started",
-      description: "Generating your trip expense CSV file...",
+      title: "Export Success",
+      description: "Your trip expense CSV file has been downloaded.",
     });
   };
 
