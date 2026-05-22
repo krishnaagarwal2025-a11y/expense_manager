@@ -32,7 +32,8 @@ export interface Expense {
   allocations: ExpenseAllocation[];
   payer_id: string; // Node ID of who paid
   settled?: boolean; // Main cross-clan settlement status
-  internal_settled?: boolean; // Nitin's internal clan settlement status
+  internal_settled?: boolean; // General internal settlement status
+  settled_internal_members?: string[]; // Specifically which members have paid back Nitin
 }
 
 export interface Balance {
