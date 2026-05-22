@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,42 +32,42 @@ export function BalanceOverview({ expenses }: BalanceOverviewProps) {
   });
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card className="bg-primary/10 border-primary/20">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+      <Card className="bg-primary/5 border-primary/20 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Lifetime Spent</CardTitle>
+          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Lifetime Spent</CardTitle>
           <Wallet className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">₹{totalSpent.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Historical total for this trip
+          <div className="text-2xl font-bold font-headline text-secondary">₹{totalSpent.toLocaleString()}</div>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">
+            Trip historical total
           </p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-emerald-500/20 bg-emerald-50/50 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Owed</CardTitle>
-          <ArrowDownLeft className="h-4 w-4 text-emerald-500" />
+          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Active Owed</CardTitle>
+          <ArrowDownLeft className="h-4 w-4 text-emerald-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline text-emerald-500">₹{owedToYou.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Outstanding from other groups
+          <div className="text-2xl font-bold font-headline text-emerald-600">₹{owedToYou.toLocaleString()}</div>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">
+            Outstanding from others
           </p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-destructive/20 bg-destructive/5 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active You Owe</CardTitle>
+          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Active You Owe</CardTitle>
           <ArrowUpRight className="h-4 w-4 text-destructive" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold font-headline text-destructive">₹{youOwe.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Outstanding to other groups
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">
+            Outstanding to others
           </p>
         </CardContent>
       </Card>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -31,20 +30,18 @@ export default function AllocatePage() {
 
   const { data: allExpenses = [] } = useCollection<Expense>(expensesQuery);
 
-  // Filter expenses that have a Nitin Clan allocation but haven't been internally allocated yet
   const pendingExpenses = allExpenses.filter(exp => 
     exp.allocations.some(a => a.node_id === "node_nitin_clan" && (!a.internal_allocations || a.internal_allocations.length === 0)) && !exp.settled
   );
 
-  // State for member-level selection: { [expenseId]: { [memberName]: boolean } }
   const [selectedMembers, setSelectedMembers] = useState<Record<string, Record<string, boolean>>>({});
 
   if (user !== "nitin") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-        <h1 className="text-2xl font-bold">Access Denied</h1>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4 px-4 text-center">
+        <h1 className="text-2xl font-bold text-secondary">Access Denied</h1>
         <p className="text-muted-foreground">Only Nitin's Clan managers can access internal allocations.</p>
-        <Button onClick={() => router.push("/")}>Back to Dashboard</Button>
+        <Button onClick={() => router.push("/")} className="bg-primary hover:bg-primary/90">Back to Dashboard</Button>
       </div>
     );
   }
@@ -85,17 +82,15 @@ export default function AllocatePage() {
       .filter(([_, isSelected]) => isSelected)
       .map(([name]) => name);
 
-    // STRICT VALIDATION: Exactly 7 members
     if (selectedList.length !== 7) {
       toast({
         variant: "destructive",
-        title: "Validation Error",
-        description: `You must select exactly 7 members for this split. (Currently: ${selectedList.length})`,
+        title: "Exactly 7 Required",
+        description: `You must select exactly 7 members. (Currently: ${selectedList.length})`,
       });
       return;
     }
 
-    // Update the expense in Firestore
     const expenseRef = doc(db, "trips", "trip-2026", "expenses", expense.id);
     const updatedAllocations = expense.allocations.map(a => {
       if (a.node_id === "node_nitin_clan") {
@@ -115,15 +110,15 @@ export default function AllocatePage() {
     
     toast({
       title: "Allocation Confirmed",
-      description: `₹ split across exactly 7 members. Task removed from pending.`,
+      description: `Task completed. Split saved for ${expense.description}.`,
     });
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <header>
-        <h1 className="text-3xl font-bold text-primary font-headline">Internal Clan Allocations</h1>
-        <p className="text-muted-foreground">Select exactly 7 members to divide your clan's ₹ share equally</p>
+        <h1 className="text-3xl font-bold text-primary font-headline">Internal Split</h1>
+        <p className="text-muted-foreground text-sm">Select exactly 7 members for each charge</p>
       </header>
 
       <div className="grid gap-6">
@@ -138,90 +133,90 @@ export default function AllocatePage() {
           const allSelected = allNitinMembers.length > 0 && allNitinMembers.every(m => currentExpSelected[m]);
 
           return (
-            <Card key={expense.id} className="border-accent/20 bg-card/50 overflow-hidden shadow-xl">
-              <CardHeader className="pb-4 bg-secondary/10">
+            <Card key={expense.id} className="border-border/50 bg-white overflow-hidden shadow-xl rounded-2xl">
+              <CardHeader className="pb-4 bg-secondary/5 border-b border-secondary/10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-accent/10 rounded-xl">
-                      <ReceiptText className="h-6 w-6 text-accent" />
+                    <div className="p-3 bg-primary/10 rounded-xl">
+                      <ReceiptText className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl">{expense.description}</CardTitle>
-                      <CardDescription>{expense.date}</CardDescription>
+                      <CardTitle className="text-lg text-secondary font-headline leading-tight">{expense.description}</CardTitle>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-wider">{expense.date}</CardDescription>
                     </div>
                   </div>
                   <div className="text-left sm:text-right">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Clan Share</p>
-                    <p className="text-3xl font-bold font-headline text-accent">₹{amountToSplit.toLocaleString()}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Clan Share</p>
+                    <p className="text-2xl font-bold font-headline text-primary">₹{amountToSplit.toLocaleString()}</p>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 space-y-8">
-                {/* Master Select All (All 8 members) */}
-                <div className="flex items-center justify-between p-3 bg-accent/5 border border-accent/20 rounded-xl">
+              <CardContent className="p-4 sm:p-6 space-y-6">
+                {/* Master Select All */}
+                <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
                   <div className="flex items-center gap-2">
-                    <ListChecks className="h-5 w-5 text-accent" />
-                    <span className="text-sm font-bold">Select All 8 Members (Nitin Core + Cousins)</span>
+                    <ListChecks className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-bold text-secondary">Select All 8 Members</span>
                   </div>
                   <Checkbox 
                     checked={allSelected}
                     onCheckedChange={(checked) => handleSelectAllGroup(expense.id, allNitinMembers, !!checked)}
-                    className="h-6 w-6"
+                    className="h-5 w-5"
                   />
                 </div>
 
-                <div className="grid gap-8">
+                <div className="space-y-6">
                   {nitinClan?.sub_nodes?.map(subNode => {
                     const groupMembers = subNode.members || [];
                     const groupAllSelected = groupMembers.length > 0 && groupMembers.every(m => currentExpSelected[m]);
 
                     return (
-                      <div key={subNode.id} className="space-y-4">
-                        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                      <div key={subNode.id} className="space-y-3">
+                        <div className="flex items-center justify-between border-b border-border/30 pb-1.5">
                           <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-primary" />
-                            <h3 className="font-bold text-sm uppercase tracking-widest text-primary">{subNode.display_name}</h3>
+                            <Users className="h-3.5 w-3.5 text-secondary" />
+                            <h3 className="font-bold text-[10px] uppercase tracking-widest text-secondary">{subNode.display_name}</h3>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold">Select All {subNode.display_name}</span>
+                            <span className="text-[9px] text-muted-foreground font-bold uppercase">All</span>
                             <Checkbox 
                               checked={groupAllSelected}
                               onCheckedChange={(checked) => handleSelectAllGroup(expense.id, groupMembers, !!checked)}
+                              className="h-4 w-4"
                             />
                           </div>
                         </div>
                         
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-4 gap-2.5">
                           {groupMembers.map(member => {
                             const isSelected = !!currentExpSelected[member];
 
                             return (
                               <div 
                                 key={member} 
-                                className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
-                                  isSelected ? 'bg-primary/5 border-primary/40 ring-1 ring-primary/20' : 'bg-background border-border hover:border-border/80'
+                                className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                                  isSelected ? 'bg-primary/5 border-primary/40' : 'bg-background border-border/50'
                                 }`}
+                                onClick={() => handleToggleMember(expense.id, member)}
                               >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 overflow-hidden">
                                   <Checkbox 
                                     id={`${expense.id}-${member}`}
                                     checked={isSelected}
                                     onCheckedChange={() => handleToggleMember(expense.id, member)}
-                                    className="h-5 w-5"
+                                    className="h-4 w-4"
                                   />
-                                  <div className="space-y-0.5">
+                                  <div className="flex flex-col min-w-0">
                                     <Label 
                                       htmlFor={`${expense.id}-${member}`}
-                                      className="text-sm font-semibold cursor-pointer"
+                                      className="text-xs font-bold text-secondary truncate cursor-pointer"
                                     >
                                       {member}
                                     </Label>
                                     {isSelected && (
-                                       <div className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-medium mt-1">
-                                         <Badge variant="outline" className="h-4 px-1 text-[9px] border-emerald-500/30 text-emerald-500">
-                                           ₹{memberAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                         </Badge>
-                                       </div>
+                                       <span className="text-[9px] font-bold text-primary">
+                                         ₹{memberAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                       </span>
                                     )}
                                   </div>
                                 </div>
@@ -234,23 +229,23 @@ export default function AllocatePage() {
                   })}
                 </div>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${selectedCount === 7 ? 'bg-emerald-500/10' : 'bg-destructive/10'}`}>
-                      {selectedCount === 7 ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <AlertCircle className="h-5 w-5 text-destructive" />}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/30">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${selectedCount === 7 ? 'bg-emerald-500/10' : 'bg-destructive/10'}`}>
+                      {selectedCount === 7 ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-destructive" />}
                     </div>
                     <div className="text-left">
-                      <p className={`text-xs font-bold ${selectedCount === 7 ? 'text-emerald-500' : 'text-destructive'}`}>
+                      <p className={`text-xs font-bold ${selectedCount === 7 ? 'text-emerald-600' : 'text-destructive'}`}>
                         {selectedCount} of 7 Selected
                       </p>
-                      <p className="text-[10px] text-muted-foreground">Selection rule: Exactly 7 members required.</p>
+                      <p className="text-[10px] text-muted-foreground font-medium">Exactly 7 members required.</p>
                     </div>
                   </div>
                   <Button 
                     onClick={() => submitAllocation(expense)}
-                    className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 font-bold px-8 py-6 rounded-xl shadow-lg shadow-accent/20"
+                    className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 font-bold px-8 py-6 rounded-xl shadow-lg shadow-primary/20"
                   >
-                    Confirm Allocation
+                    Confirm Split
                   </Button>
                 </div>
               </CardContent>
@@ -259,10 +254,10 @@ export default function AllocatePage() {
         })}
 
         {pendingExpenses.length === 0 && (
-          <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-secondary/5 border-border/50">
+          <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-secondary/5 border-secondary/10 px-6">
             <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground font-medium">All clan expenses are fully allocated.</p>
-            <Button variant="link" className="mt-2 text-primary" onClick={() => router.push("/")}>Return to Dashboard</Button>
+            <p className="text-secondary font-bold">All clan expenses are fully split.</p>
+            <Button variant="link" className="mt-2 text-primary font-bold" onClick={() => router.push("/")}>Return to Dashboard</Button>
           </div>
         )}
       </div>
