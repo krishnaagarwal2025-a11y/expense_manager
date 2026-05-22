@@ -25,9 +25,10 @@ export default function SettlementPage() {
     return collection(db, "trips", "trip-2026", "expenses");
   }, [db]);
 
-  const { data: expenses = [] } = useCollection<Expense>(expensesQuery);
+  const { data: allExpenses = [] } = useCollection<Expense>(expensesQuery);
 
-  const activeMainExpenses = expenses.filter(e => !e.settled);
+  // Cross-clan balance logic
+  const activeMainExpenses = allExpenses.filter(e => !e.settled);
   let sanjeevOwesNitin = 0;
   let nitinOwesSanjeev = 0;
 
@@ -49,18 +50,19 @@ export default function SettlementPage() {
     ? { from: "Nitin's Clan", to: "Sanjeev's Family", amount: Math.abs(netDiff) }
     : null;
 
+  // Internal Nitin Clan balance logic
   const internalBalances: Record<string, number> = {};
   const coreMembers = ["Nitin", "Komal", "Khushi", "Krishna"];
   const individualCousins = ["Sunita", "Parul", "Payal", "Rajul"];
 
-  expenses.forEach(exp => {
+  allExpenses.forEach(exp => {
     const nitinAlloc = exp.allocations.find(a => a.node_id === "node_nitin_clan");
     if (user === "nitin" && nitinAlloc?.internal_allocations?.length) {
       const perMemberShare = nitinAlloc.amount / nitinAlloc.internal_allocations.length;
-      const settled = exp.settled_internal_members || [];
+      const alreadySettledInExp = exp.settled_internal_members || [];
 
       nitinAlloc.internal_allocations.forEach(member => {
-        if (!settled.includes(member)) {
+        if (!alreadySettledInExp.includes(member)) {
           if (coreMembers.includes(member)) {
             internalBalances["Nitin Core Family"] = (internalBalances["Nitin Core Family"] || 0) + perMemberShare;
           } else if (individualCousins.includes(member)) {
@@ -81,9 +83,12 @@ export default function SettlementPage() {
         return updateDoc(ref, { settled: true });
       });
       await Promise.all(updates);
-      toast({ title: "Main Settlement Finalized" });
-    } catch (e) {
-      console.error(e);
+      toast({ title: "Cross-Clan Settlement Finalized" });
+    } catch (e: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: "trips/trip-2026/expenses",
+        operation: 'update',
+      }));
     } finally {
       setLoadingStates(prev => ({ ...prev, main: false }));
     }
@@ -96,9 +101,11 @@ export default function SettlementPage() {
     const membersToSettle = key === "Nitin Core Family" ? coreMembers : [key];
     
     try {
-      const relevantExpenses = expenses.filter(exp => {
+      // Find expenses where these members owe money
+      const relevantExpenses = allExpenses.filter(exp => {
         const nitinAlloc = exp.allocations.find(a => a.node_id === "node_nitin_clan");
-        return nitinAlloc?.internal_allocations?.some(m => membersToSettle.includes(m));
+        return nitinAlloc?.internal_allocations?.some(m => membersToSettle.includes(m)) &&
+               !membersToSettle.every(m => (exp.settled_internal_members || []).includes(m));
       });
 
       const updates = relevantExpenses.map(exp => {
@@ -110,8 +117,11 @@ export default function SettlementPage() {
 
       await Promise.all(updates);
       toast({ title: `${key} Balance Cleared` });
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+       errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: "trips/trip-2026/expenses",
+        operation: 'update',
+      }));
     } finally {
       setLoadingStates(prev => ({ ...prev, [key]: false }));
     }
@@ -121,7 +131,7 @@ export default function SettlementPage() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header>
         <h1 className="text-3xl font-bold text-primary font-headline">Settlement Engine</h1>
-        <p className="text-muted-foreground">Finalize repayments and archive historical entries</p>
+        <p className="text-muted-foreground">Finalize cross-clan balances and internal family dues</p>
       </header>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -132,9 +142,9 @@ export default function SettlementPage() {
                 <div className="p-2 bg-emerald-500/20 rounded-lg">
                   <TrendingDown className="h-5 w-5 text-emerald-500" />
                 </div>
-                <CardTitle className="text-lg font-headline">Main Clan Settlement</CardTitle>
+                <CardTitle className="text-lg font-headline">Cross-Clan Settlement</CardTitle>
               </div>
-              <CardDescription>Cross-clan balance between families</CardDescription>
+              <CardDescription>Final balance between Sanjeev and Nitin</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {mainSettlement ? (
@@ -157,7 +167,7 @@ export default function SettlementPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center p-10 text-center space-y-3 bg-card/50 rounded-2xl border border-dashed">
                   <CheckCircle2 className="h-10 w-10 text-emerald-500/30" />
-                  <p className="text-sm font-medium text-muted-foreground">Cross-clan accounts are clear.</p>
+                  <p className="text-sm font-medium text-muted-foreground">Cross-clan accounts are fully settled.</p>
                 </div>
               )}
               
@@ -167,7 +177,7 @@ export default function SettlementPage() {
                 disabled={loadingStates.main || !mainSettlement}
               >
                 {loadingStates.main ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                Confirm Main Settlement
+                Finalize Main Settlement
               </Button>
             </CardContent>
           </Card>
@@ -178,21 +188,17 @@ export default function SettlementPage() {
                 <div className="p-2 bg-primary/20 rounded-lg">
                   <History className="h-5 w-5 text-primary" />
                 </div>
-                <CardTitle className="text-lg font-headline">Trip Totals</CardTitle>
+                <CardTitle className="text-lg font-headline">Lifetime Stats</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
                <div className="flex items-center justify-between p-4 border-b border-border/30 last:border-0">
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Lifetime Entries</p>
-                  <p className="font-bold font-headline text-primary">{expenses.length}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase">Historical Entries</p>
+                  <p className="font-bold font-headline text-primary">{allExpenses.length}</p>
                </div>
                <div className="flex items-center justify-between p-4 border-b border-border/30 last:border-0">
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Sanjeev's Family Total</p>
-                  <p className="font-bold font-headline">₹{expenses.filter(e => e.payer_id === "node_sanjeev_family").reduce((s, e) => s + e.amount, 0).toLocaleString()}</p>
-               </div>
-               <div className="flex items-center justify-between p-4 border-b border-border/30 last:border-0">
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Nitin's Clan Total</p>
-                  <p className="font-bold font-headline">₹{expenses.filter(e => e.payer_id === "node_nitin_clan").reduce((s, e) => s + e.amount, 0).toLocaleString()}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase">Total Trip Spend</p>
+                  <p className="font-bold font-headline">₹{allExpenses.reduce((s, e) => s + e.amount, 0).toLocaleString()}</p>
                </div>
             </CardContent>
           </Card>
@@ -205,9 +211,9 @@ export default function SettlementPage() {
                 <div className="p-2 bg-accent/20 rounded-lg">
                   <Users className="h-5 w-5 text-accent" />
                 </div>
-                <CardTitle className="text-lg font-headline">Internal Clan Dues</CardTitle>
+                <CardTitle className="text-lg font-headline">Internal Clan Repayments</CardTitle>
               </div>
-              <CardDescription>Settle individually with core family and cousins</CardDescription>
+              <CardDescription>Settle with the 5 clan entities (Core + 4 Cousins)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {Object.keys(internalBalances).length > 0 ? (
@@ -220,7 +226,7 @@ export default function SettlementPage() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-sm font-bold">{key}</span>
-                          <span className="text-[10px] text-accent font-bold">₹{amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                          <span className="text-[10px] text-accent font-bold">Owes ₹{amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                         </div>
                       </div>
                       <Button 
@@ -237,7 +243,8 @@ export default function SettlementPage() {
                 </div>
               ) : (
                 <div className="text-center py-12 border border-dashed rounded-2xl">
-                  <p className="text-xs text-muted-foreground italic">Your clan is fully squared away.</p>
+                  <CheckCircle2 className="h-8 w-8 text-accent/30 mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground italic">Internal clan accounts are clear.</p>
                 </div>
               )}
             </CardContent>

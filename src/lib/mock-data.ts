@@ -20,7 +20,7 @@ export const DEFAULT_TRIP_STRUCTURE: Trip = {
       sub_nodes: [
         {
           id: "node_nitin_core",
-          display_name: "Nitin Core Family",
+          display_name: "Core Family",
           manager_id: "user_nitin",
           members: ["Nitin", "Komal", "Khushi", "Krishna"]
         },
