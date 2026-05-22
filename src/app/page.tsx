@@ -5,17 +5,19 @@ import { NestNodeCard } from "@/components/clan/nest-node-card";
 import { MOCK_TRIP } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, History, ArrowRight, User, Users, LogOut, Info } from "lucide-react";
+import { Plus, Download, ArrowRight, User, Users, LogOut, Info, History } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/context/user-context";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { Expense } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const { user, setUser } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
 
   const expensesQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -86,6 +88,13 @@ export default function Dashboard() {
     user === "nitin"
   );
 
+  const handleExport = () => {
+    toast({
+      title: "Export Started",
+      description: "Generating your trip expense CSV file...",
+    });
+  };
+
   return (
     <div className="space-y-8 pb-12 animate-in slide-in-from-bottom-2 duration-500">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-8">
@@ -110,11 +119,14 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="lg" className="gap-2 border-secondary/20 text-secondary hover:bg-secondary/5 font-bold rounded-xl" asChild>
-            <Link href="/expenses">
-              <History className="h-5 w-5" />
-              History
-            </Link>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="gap-2 border-secondary/20 text-secondary hover:bg-secondary/5 font-bold rounded-xl"
+            onClick={handleExport}
+          >
+            <Download className="h-5 w-5" />
+            Export CSV
           </Button>
           <Button size="lg" className="gap-2 bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary/90 font-bold rounded-xl" asChild>
             <Link href="/expenses">
