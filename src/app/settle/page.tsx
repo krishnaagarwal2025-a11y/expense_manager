@@ -3,18 +3,22 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, History, TrendingDown, CreditCard, Scale, Users, User } from "lucide-react";
+import { ArrowRight, History, TrendingDown, CreditCard, Scale, Users, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, doc, deleteDoc } from "firebase/firestore";
 import { Expense } from "@/types";
 import { useUser } from "@/context/user-context";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function SettlementPage() {
   const { toast } = useToast();
   const { user } = useUser();
   const db = useFirestore();
+  const [isSettling, setIsSettling] = useState(false);
 
   const expensesQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -59,10 +63,29 @@ export default function SettlementPage() {
     : null;
 
   const handleConfirmAll = () => {
-    toast({
-      title: "Settlement Recorded",
-      description: "Balance transfer confirmed. The ledger has been updated for this cycle.",
+    if (!db || expenses.length === 0) return;
+    
+    setIsSettling(true);
+    
+    // To settle the data, we delete all expenses in the current collection
+    // This effectively "clears" the balance for the trip cycle
+    expenses.forEach(expense => {
+      const expenseRef = doc(db, "trips", "trip-2026", "expenses", expense.id);
+      deleteDoc(expenseRef)
+        .catch(async (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: expenseRef.path,
+            operation: 'delete',
+          }));
+        });
     });
+
+    toast({
+      title: "Settlement Finalized",
+      description: "All balances have been cleared and the ledger is reset.",
+    });
+    
+    setIsSettling(false);
   };
 
   return (
@@ -112,9 +135,13 @@ export default function SettlementPage() {
               <Button 
                 className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold py-6 rounded-xl mt-4"
                 onClick={handleConfirmAll}
-                disabled={!settlementPath && Object.keys(internalBalances).length === 0}
+                disabled={isSettling || expenses.length === 0}
               >
-                <CreditCard className="h-4 w-4 mr-2" />
+                {isSettling ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4 mr-2" />
+                )}
                 Confirm Settlement
               </Button>
             </CardContent>
