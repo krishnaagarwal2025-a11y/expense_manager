@@ -12,28 +12,18 @@ import { Button } from "@/components/ui/button";
 import { ReceiptText, Search, Download, Users, PlusCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/user-context";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
 import { Expense } from "@/types";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { downloadExpensesCSV } from "@/lib/export";
+import { useExpenses } from "@/lib/expense-store";
 
 export default function ExpensesPage() {
   const { user } = useUser();
-  const db = useFirestore();
   const { toast } = useToast();
+  const { expenses, addExpense, deleteExpense } = useExpenses();
 
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [shares, setShares] = useState<Record<string, number>>({});
-
-  const expensesQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, "trips", "trip-2026", "expenses");
-  }, [db]);
-
-  const { data: expenses = [] } = useCollection<Expense>(expensesQuery);
 
   const handleShareChange = (nodeId: string, val: string) => {
     const num = parseInt(val);
@@ -49,7 +39,6 @@ export default function ExpensesPage() {
   };
 
   const handleCreateEntry = () => {
-    if (!db) return;
     const activeNodes = Object.entries(shares).filter(([_, s]) => s > 0);
     
     const numAmount = parseFloat(amount);
@@ -82,7 +71,6 @@ export default function ExpensesPage() {
 
     const totalShares = activeNodes.reduce((sum, [_, s]) => sum + s, 0);
     const expenseId = `exp_${Date.now()}`;
-    const expenseRef = doc(db, "trips", "trip-2026", "expenses", expenseId);
 
     const newExpense: Expense = {
       id: expenseId,
@@ -98,14 +86,7 @@ export default function ExpensesPage() {
       payer_id: user === "sanjeev" ? "node_sanjeev_family" : "node_nitin_clan"
     };
 
-    setDoc(expenseRef, newExpense)
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: expenseRef.path,
-          operation: 'create',
-          requestResourceData: newExpense,
-        }));
-      });
+    addExpense(newExpense);
 
     toast({
       title: "Expense Logged",
@@ -118,15 +99,7 @@ export default function ExpensesPage() {
   };
 
   const handleDeleteExpense = (id: string) => {
-    if (!db) return;
-    const expenseRef = doc(db, "trips", "trip-2026", "expenses", id);
-    deleteDoc(expenseRef)
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: expenseRef.path,
-          operation: 'delete',
-        }));
-      });
+    deleteExpense(id);
 
     toast({
       title: "Expense Deleted",
@@ -152,35 +125,35 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 animate-in fade-in duration-500 pb-4 md:space-y-6 md:pb-10">
+      <header className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center md:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-primary font-headline">Expense Logs</h1>
+          <h1 className="font-headline text-3xl font-bold text-primary">Expense Logs</h1>
           <p className="text-muted-foreground text-sm">Historical ledger of all trip transactions</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2 border-primary/20 hover:bg-primary/5 w-full sm:w-auto" onClick={handleExport}>
+        <Button variant="outline" size="sm" className="h-10 w-full gap-2 rounded-lg border-primary/20 hover:bg-primary/5 sm:w-auto" onClick={handleExport}>
           <Download className="h-4 w-4" />
           Export CSV
         </Button>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <Card className="border-primary/20 shadow-lg bg-white">
-            <CardHeader className="pb-4">
+          <Card className="rounded-lg border-primary/20 bg-white shadow-lg md:rounded-xl">
+            <CardHeader className="p-4 pb-3 md:p-6 md:pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-secondary">
                 <PlusCircle className="h-5 w-5 text-primary" />
                 Log New Charge
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-muted-foreground">Description</Label>
                 <Input 
                   placeholder="e.g. Dinner at the Grand Hotel" 
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="bg-background border-border/50 h-11" 
+                  className="h-12 rounded-lg border-border/50 bg-background"
                 />
               </div>
 
@@ -193,7 +166,7 @@ export default function ExpensesPage() {
                     placeholder="0.00" 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="bg-background border-border/50 pl-7 h-11" 
+                    className="h-12 rounded-lg border-border/50 bg-background pl-7"
                   />
                 </div>
               </div>
@@ -203,14 +176,14 @@ export default function ExpensesPage() {
                   <Users className="h-4 w-4 text-primary" />
                   Split Allocation
                 </Label>
-                <div className="space-y-2 bg-secondary/5 p-3 rounded-xl border border-secondary/10">
+                <div className="space-y-2 rounded-lg border border-secondary/10 bg-secondary/5 p-3">
                   {MOCK_TRIP.nodes.map(n => (
                     <div key={n.id} className="flex items-center justify-between gap-4">
                       <span className="text-xs font-bold truncate text-secondary">{n.display_name}</span>
                       <Input 
                         type="number" 
                         placeholder="0"
-                        className="w-20 h-9 text-right text-xs bg-white border-border/30"
+                        className="h-10 w-24 rounded-lg border-border/30 bg-white text-right text-sm"
                         value={shares[n.id] || ""}
                         onChange={(e) => handleShareChange(n.id, e.target.value)}
                       />
@@ -219,7 +192,7 @@ export default function ExpensesPage() {
                 </div>
               </div>
 
-              <Button className="w-full mt-2 font-bold py-6 text-base bg-primary hover:bg-primary/90 rounded-xl shadow-lg shadow-primary/10" onClick={handleCreateEntry}>
+              <Button className="mt-2 h-12 w-full rounded-lg bg-primary text-base font-bold shadow-lg shadow-primary/10 hover:bg-primary/90" onClick={handleCreateEntry}>
                 Create Entry
               </Button>
             </CardContent>
@@ -227,7 +200,7 @@ export default function ExpensesPage() {
         </div>
 
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center gap-2 p-2 bg-white border border-border/50 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-white p-2 shadow-sm">
             <Search className="h-5 w-5 text-muted-foreground ml-2" />
             <Input 
               placeholder="Search expenses..." 
@@ -235,7 +208,44 @@ export default function ExpensesPage() {
             />
           </div>
 
-          <div className="rounded-xl border border-border/50 overflow-hidden shadow-xl bg-white">
+          <div className="grid gap-3 md:hidden">
+            {expenses.map((expense) => (
+              <article key={expense.id} className="mobile-surface p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <p className="truncate text-sm font-bold text-secondary">{expense.description}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground">{expense.date} · By {expense.payer_id.split('_')[1].toUpperCase()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-headline text-lg font-bold text-primary">₹{expense.amount.toLocaleString()}</p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="ml-auto mt-1 h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDeleteExpense(expense.id)}
+                      aria-label={`Delete ${expense.description}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {expense.allocations.map(a => (
+                    <Badge key={a.node_id} variant="secondary" className="h-6 rounded-md bg-primary/5 px-2 text-[10px] font-bold text-primary">
+                      {a.node_id.split('_')[1].toUpperCase()} · ₹{a.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </Badge>
+                  ))}
+                </div>
+              </article>
+            ))}
+            {expenses.length === 0 && (
+              <div className="mobile-surface py-16 text-center text-sm font-medium text-muted-foreground">
+                No transactions recorded yet.
+              </div>
+            )}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-lg border border-border/50 bg-white shadow-xl md:block md:rounded-xl">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-secondary/5">

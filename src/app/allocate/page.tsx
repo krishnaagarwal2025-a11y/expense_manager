@@ -11,24 +11,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ReceiptText, Users, CheckCircle2, ListChecks, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, updateDoc } from "firebase/firestore";
 import { Expense } from "@/types";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useExpenses } from "@/lib/expense-store";
 
 export default function AllocatePage() {
   const { user } = useUser();
-  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
-  
-  const expensesQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, "trips", "trip-2026", "expenses");
-  }, [db]);
 
-  const { data: allExpenses = [] } = useCollection<Expense>(expensesQuery);
+  const { expenses: allExpenses, updateExpense } = useExpenses();
 
   const pendingExpenses = allExpenses.filter(exp => 
     exp.allocations.some(a => a.node_id === "node_nitin_clan" && (!a.internal_allocations || a.internal_allocations.length === 0)) && !exp.settled
@@ -76,8 +67,6 @@ export default function AllocatePage() {
   };
 
   const submitAllocation = (expense: Expense) => {
-    if (!db) return;
-    
     const clanAllocation = expense.allocations.find(a => a.node_id === "node_nitin_clan");
     const requiredSelections = clanAllocation?.shares || 0;
     
@@ -95,7 +84,6 @@ export default function AllocatePage() {
       return;
     }
 
-    const expenseRef = doc(db, "trips", "trip-2026", "expenses", expense.id);
     const updatedAllocations = expense.allocations.map(a => {
       if (a.node_id === "node_nitin_clan") {
         return { ...a, internal_allocations: selectedList };
@@ -103,14 +91,7 @@ export default function AllocatePage() {
       return a;
     });
 
-    updateDoc(expenseRef, { allocations: updatedAllocations })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: expenseRef.path,
-          operation: 'update',
-          requestResourceData: { allocations: updatedAllocations },
-        }));
-      });
+    updateExpense(expense.id, { allocations: updatedAllocations });
     
     toast({
       title: "Allocation Confirmed",
@@ -119,13 +100,13 @@ export default function AllocatePage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-5 animate-in fade-in duration-500 pb-4 md:space-y-6 md:pb-20">
       <header>
-        <h1 className="text-3xl font-bold text-primary font-headline">Internal Split</h1>
+        <h1 className="font-headline text-3xl font-bold text-primary">Internal Split</h1>
         <p className="text-muted-foreground text-sm">Select members for each charge based on the recorded shares</p>
       </header>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4 md:gap-6">
         {pendingExpenses.map(expense => {
           const clanAllocation = expense.allocations.find(a => a.node_id === "node_nitin_clan");
           const amountToSplit = clanAllocation?.amount || 0;
@@ -138,11 +119,11 @@ export default function AllocatePage() {
           const allSelected = allNitinMembers.length > 0 && allNitinMembers.every(m => currentExpSelected[m]);
 
           return (
-            <Card key={expense.id} className="border-border/50 bg-white overflow-hidden shadow-xl rounded-2xl">
-              <CardHeader className="pb-4 bg-secondary/5 border-b border-secondary/10">
+            <Card key={expense.id} className="overflow-hidden rounded-lg border-border/50 bg-white shadow-xl md:rounded-2xl">
+              <CardHeader className="border-b border-secondary/10 bg-secondary/5 p-4 md:p-6 md:pb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-primary/10 rounded-xl">
+                    <div className="rounded-lg bg-primary/10 p-3 md:rounded-xl">
                       <ReceiptText className="h-6 w-6 text-primary" />
                     </div>
                     <div>
@@ -156,9 +137,9 @@ export default function AllocatePage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6 space-y-6">
+              <CardContent className="space-y-5 p-4 sm:p-6 md:space-y-6">
                 {/* Master Select All */}
-                <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
+                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3 md:rounded-xl">
                   <div className="flex items-center gap-2">
                     <ListChecks className="h-4 w-4 text-primary" />
                     <span className="text-xs font-bold text-secondary">Toggle All Members</span>
@@ -192,14 +173,14 @@ export default function AllocatePage() {
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5">
                           {groupMembers.map(member => {
                             const isSelected = !!currentExpSelected[member];
 
                             return (
                               <div 
                                 key={member} 
-                                className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                                className={`flex min-h-14 cursor-pointer items-center justify-between rounded-lg border p-3 transition-all duration-200 md:rounded-xl ${
                                   isSelected ? 'bg-primary/5 border-primary/40' : 'bg-background border-border/50'
                                 }`}
                                 onClick={() => handleToggleMember(expense.id, member)}
@@ -234,7 +215,7 @@ export default function AllocatePage() {
                   })}
                 </div>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/30">
+                <div className="flex flex-col items-stretch justify-between gap-4 border-t border-border/30 pt-4 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${selectedCount === requiredCount ? 'bg-emerald-500/10' : 'bg-destructive/10'}`}>
                       {selectedCount === requiredCount ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-destructive" />}
@@ -248,7 +229,7 @@ export default function AllocatePage() {
                   </div>
                   <Button 
                     onClick={() => submitAllocation(expense)}
-                    className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 font-bold px-8 py-6 rounded-xl shadow-lg shadow-primary/20"
+                    className="h-12 w-full rounded-lg bg-primary px-8 font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 sm:w-auto md:rounded-xl"
                   >
                     Confirm Split
                   </Button>
@@ -259,7 +240,7 @@ export default function AllocatePage() {
         })}
 
         {pendingExpenses.length === 0 && (
-          <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-secondary/5 border-secondary/10 px-6">
+          <div className="rounded-lg border-2 border-dashed border-secondary/10 bg-secondary/5 px-6 py-16 text-center md:rounded-3xl md:py-20">
             <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-secondary font-bold">All clan expenses are fully split.</p>
             <Button variant="link" className="mt-2 text-primary font-bold" onClick={() => router.push("/")}>Return to Dashboard</Button>

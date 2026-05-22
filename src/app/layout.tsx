@@ -1,15 +1,34 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { ClanSidebar } from "@/components/layout/clan-sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { UserProvider } from "@/context/user-context";
 import { FirebaseClientProvider } from "@/firebase";
 import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import type { Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: 'ClanSplit | Nested Expense Management',
+  title: 'Muneem Sahab | Nested Expense Management',
   description: 'Intelligent family expense allocation for groups and clans.',
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Muneem Sahab",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#D35400",
 };
 
 export default function RootLayout({
@@ -29,24 +48,27 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <UserProvider>
             <SidebarProvider>
-              <div className="flex min-h-screen w-full bg-background">
-                <ClanSidebar />
-                <div className="flex flex-col flex-1 w-full">
+              <div className="flex min-h-svh w-full bg-background">
+                <div className="hidden md:block">
+                  <ClanSidebar />
+                </div>
+                <div className="flex flex-col flex-1 w-full min-w-0">
                   {/* Mobile Header */}
-                  <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-white px-4 md:hidden shadow-sm">
-                    <SidebarTrigger />
+                  <header className="sticky top-0 z-40 flex h-[calc(4rem+env(safe-area-inset-top))] items-end gap-3 border-b bg-white/95 px-4 pb-3 pt-[env(safe-area-inset-top)] md:hidden shadow-sm backdrop-blur">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl">
-                        C
+                      <img src="/logo.png" alt="Muneem Sahab" className="h-9 w-9 rounded-lg object-cover shadow-sm" />
+                      <div className="leading-tight">
+                        <span className="block font-headline font-bold text-secondary text-lg">Muneem Sahab</span>
+                        <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Family Trip</span>
                       </div>
-                      <span className="font-headline font-bold text-secondary text-lg">ClanSplit</span>
                     </div>
                   </header>
-                  <main className="flex-1 overflow-y-auto p-4 md:p-8">
-                    <div className="mx-auto max-w-5xl space-y-8">
+                  <main className="flex-1 overflow-y-auto px-3 pb-28 pt-4 sm:px-4 md:p-8">
+                    <div className="mx-auto max-w-5xl space-y-5 md:space-y-8">
                       {children}
                     </div>
                   </main>
+                  <MobileBottomNav />
                 </div>
               </div>
             </SidebarProvider>

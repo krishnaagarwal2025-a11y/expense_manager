@@ -34,12 +34,10 @@ export function ClanSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="p-6 bg-secondary">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl shadow-lg">
-            C
-          </div>
+          <img src="/logo.png" alt="Muneem Sahab" className="h-10 w-10 rounded-xl object-cover shadow-lg" />
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="font-headline text-lg font-bold tracking-tight text-white">
-              ClanSplit
+              Muneem Sahab
             </span>
             <span className="text-[10px] uppercase tracking-widest text-white/60 font-medium">Family Trip Manager</span>
           </div>

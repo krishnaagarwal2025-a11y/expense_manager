@@ -1,6 +1,6 @@
 {
-  "name": "ClanSplit",
-  "short_name": "ClanSplit",
+  "name": "Muneem Sahab",
+  "short_name": "Muneem Sahab",
   "description": "Intelligent family expense allocation",
   "start_url": "/",
   "display": "standalone",
@@ -8,13 +8,13 @@
   "theme_color": "#5B73DB",
   "icons": [
     {
-      "src": "https://picsum.photos/seed/clan/192/192",
-      "sizes": "192x192",
+      "src": "/logo.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     },
     {
-      "src": "https://picsum.photos/seed/clan/512/512",
-      "sizes": "512x512",
+      "src": "/logo.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     }
   ]

@@ -1,4 +1,4 @@
-# **App Name**: ClanSplit
+# **App Name**: Muneem Sahab
 
 ## Core Features:
 

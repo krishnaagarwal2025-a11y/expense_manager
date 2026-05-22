@@ -6,74 +6,61 @@ import { NestNodeCard } from "@/components/clan/nest-node-card";
 import { MOCK_TRIP } from "@/lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, ArrowRight, User, Users, LogOut, Info, History } from "lucide-react";
+import { Plus, Download, ArrowRight, LogOut, Info, History } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/context/user-context";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
-import { Expense } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { downloadExpensesCSV } from "@/lib/export";
+import { useExpenses } from "@/lib/expense-store";
 
 export default function Dashboard() {
   const { user, setUser } = useUser();
-  const db = useFirestore();
   const { toast } = useToast();
-
-  const expensesQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, "trips", "trip-2026", "expenses");
-  }, [db]);
-
-  const { data: expenses = [] } = useCollection<Expense>(expensesQuery);
+  const { expenses } = useExpenses();
 
   if (!user) {
     return (
-      <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-12 animate-in fade-in duration-500">
-        <div className="text-center space-y-4 max-w-lg">
-          <div className="mx-auto h-24 w-24 rounded-3xl bg-secondary flex items-center justify-center text-white font-bold text-5xl mb-8 shadow-2xl shadow-secondary/20">
-            C
-          </div>
-          <h1 className="text-5xl font-bold tracking-tight text-secondary font-headline">ClanSplit</h1>
-          <p className="text-muted-foreground text-lg px-6">Manage religious trip expenses with your family and cousins with complete transparency.</p>
+      <div className="flex min-h-[calc(100svh-7rem)] flex-col items-center justify-center space-y-7 animate-in fade-in duration-500 md:min-h-[80vh] md:space-y-12">
+        <div className="text-center space-y-3 max-w-lg">
+          <img src="/logo.png" alt="Muneem Sahab" className="mx-auto mb-5 h-20 w-20 rounded-2xl object-cover shadow-2xl shadow-secondary/20 md:mb-8 md:h-24 md:w-24 md:rounded-3xl" />
+          <h1 className="font-headline text-4xl font-bold tracking-tight text-secondary md:text-5xl">Muneem Sahab</h1>
+          <p className="px-4 text-sm leading-6 text-muted-foreground md:text-lg">Manage religious trip expenses with your family and cousins with complete transparency.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
+        <div className="grid w-full max-w-2xl grid-cols-1 gap-3 px-1 md:grid-cols-2 md:gap-8 md:px-4">
           <Card 
-            className="group cursor-pointer border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-white overflow-hidden relative shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-lg border-transparent bg-white shadow-md transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 md:rounded-xl"
             onClick={() => setUser("sanjeev")}
           >
             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
               <ArrowRight className="h-6 w-6 text-primary" />
             </div>
-            <CardContent className="flex flex-col items-center p-12 space-y-6">
-              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                <User className="h-12 w-12" />
-              </div>
-              <div className="text-center">
-                <h2 className="text-2xl font-bold font-headline text-secondary">Sanjeev</h2>
+            <CardContent className="flex items-center gap-4 p-4 md:flex-col md:p-12 md:space-y-6">
+              <img src="/sanjeev.png" alt="Sanjeev" className="h-16 w-16 shrink-0 rounded-full border-2 border-primary/10 object-cover shadow-sm transition-all duration-300 group-hover:border-primary/40 md:h-24 md:w-24" />
+              <div className="min-w-0 flex-1 text-left md:text-center">
+                <h2 className="font-headline text-xl font-bold text-secondary md:text-2xl">Sanjeev</h2>
                 <p className="text-muted-foreground text-sm font-medium">Sanjeev's Family</p>
               </div>
-              <Button className="w-full font-bold h-12 rounded-xl bg-primary text-white hover:bg-primary/90">Continue as Sanjeev</Button>
+              <Button className="hidden h-12 w-full rounded-lg bg-primary font-bold text-white hover:bg-primary/90 md:inline-flex">Continue as Sanjeev</Button>
+              <ArrowRight className="h-5 w-5 text-primary md:hidden" />
             </CardContent>
           </Card>
 
           <Card 
-            className="group cursor-pointer border-transparent hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/10 bg-white overflow-hidden relative shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-lg border-transparent bg-white shadow-md transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 md:rounded-xl"
             onClick={() => setUser("nitin")}
           >
              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
               <ArrowRight className="h-6 w-6 text-primary" />
             </div>
-            <CardContent className="flex flex-col items-center p-12 space-y-6">
-              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                <Users className="h-12 w-12" />
-              </div>
-              <div className="text-center">
-                <h2 className="text-2xl font-bold font-headline text-secondary">Nitin</h2>
+            <CardContent className="flex items-center gap-4 p-4 md:flex-col md:p-12 md:space-y-6">
+              <img src="/nitin.png" alt="Nitin" className="h-16 w-16 shrink-0 rounded-full border-2 border-primary/10 object-cover shadow-sm transition-all duration-300 group-hover:border-primary/40 md:h-24 md:w-24" />
+              <div className="min-w-0 flex-1 text-left md:text-center">
+                <h2 className="font-headline text-xl font-bold text-secondary md:text-2xl">Nitin</h2>
                 <p className="text-muted-foreground text-sm font-medium">Nitin's Clan</p>
               </div>
-              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-white font-bold h-12 rounded-xl">Continue as Nitin</Button>
+              <Button variant="outline" className="hidden h-12 w-full rounded-lg border-primary font-bold text-primary hover:bg-primary hover:text-white md:inline-flex">Continue as Nitin</Button>
+              <ArrowRight className="h-5 w-5 text-primary md:hidden" />
             </CardContent>
           </Card>
         </div>
@@ -107,11 +94,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 pb-12 animate-in slide-in-from-bottom-2 duration-500">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-8">
+    <div className="space-y-5 pb-4 animate-in slide-in-from-bottom-2 duration-500 md:space-y-8 md:pb-12">
+      <header className="flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between md:pb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Badge className="bg-primary/10 text-primary border-primary/20 font-bold px-3 py-1 rounded-full text-[10px] uppercase tracking-wider">
+            <Badge className="rounded-full border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
               {userName}'s Dashboard
             </Badge>
             <Button 
@@ -124,25 +111,25 @@ export default function Dashboard() {
               Switch Profile
             </Button>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-secondary font-headline">Financial Overview</h1>
-          <p className="text-muted-foreground mt-1 flex items-center gap-2 font-medium">
+          <h1 className="font-headline text-3xl font-bold tracking-tight text-secondary md:text-4xl">Financial Overview</h1>
+          <p className="mt-1 flex items-center gap-2 text-sm font-medium text-muted-foreground md:text-base">
             Family Trip: <span className="text-primary font-bold">{MOCK_TRIP.name}</span>
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="grid grid-cols-2 gap-2 md:flex md:gap-3">
           <Button 
             variant="outline" 
             size="lg" 
-            className="gap-2 border-secondary/20 text-secondary hover:bg-secondary/5 font-bold rounded-xl"
+            className="h-11 gap-2 rounded-lg border-secondary/20 text-sm font-bold text-secondary hover:bg-secondary/5 md:rounded-xl"
             onClick={handleExport}
           >
             <Download className="h-5 w-5" />
             Export CSV
           </Button>
-          <Button size="lg" className="gap-2 bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary/90 font-bold rounded-xl" asChild>
+          <Button size="lg" className="h-11 gap-2 rounded-lg bg-primary text-sm font-bold text-white shadow-xl shadow-primary/20 hover:bg-primary/90 md:rounded-xl" asChild>
             <Link href="/expenses">
               <Plus className="h-5 w-5" />
-              Record Expense
+              Record
             </Link>
           </Button>
         </div>
@@ -151,26 +138,26 @@ export default function Dashboard() {
       <BalanceOverview expenses={expenses} />
 
       {user === "nitin" && needsAllocation.length > 0 && (
-        <section className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-primary/5">
-          <div className="flex items-center gap-5">
-            <div className="bg-primary/20 p-4 rounded-2xl">
-              <Info className="h-8 w-8 text-primary" />
+        <section className="flex flex-col gap-4 rounded-lg border border-primary/20 bg-primary/5 p-4 shadow-lg shadow-primary/5 md:flex-row md:items-center md:justify-between md:rounded-2xl md:p-6">
+          <div className="flex items-center gap-3 md:gap-5">
+            <div className="rounded-lg bg-primary/20 p-3 md:rounded-2xl md:p-4">
+              <Info className="h-6 w-6 text-primary md:h-8 md:w-8" />
             </div>
             <div>
-              <p className="font-bold text-secondary text-xl">Pending Internal Allocations</p>
+              <p className="text-base font-bold text-secondary md:text-xl">Pending Internal Allocations</p>
               <p className="text-sm text-muted-foreground font-medium">You have {needsAllocation.length} expenses waiting to be distributed within your clan members.</p>
             </div>
           </div>
-          <Button size="lg" className="bg-primary text-white hover:bg-primary/90 font-bold px-8 rounded-xl" asChild>
+          <Button size="lg" className="w-full rounded-lg bg-primary px-8 font-bold text-white hover:bg-primary/90 md:w-auto md:rounded-xl" asChild>
             <Link href="/allocate">Start Allocation</Link>
           </Button>
         </section>
       )}
 
-      <div className="grid gap-10 lg:grid-cols-5">
-        <section className="lg:col-span-3 space-y-6">
+      <div className="grid gap-6 lg:grid-cols-5 lg:gap-10">
+        <section className="space-y-4 lg:col-span-3 md:space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold font-headline text-secondary">Family Hierarchy</h2>
+            <h2 className="font-headline text-xl font-bold text-secondary md:text-2xl">Family Hierarchy</h2>
           </div>
           <div className="space-y-4">
             {MOCK_TRIP.nodes.map((node) => (
@@ -179,16 +166,16 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="lg:col-span-2 space-y-6">
-          <h2 className="text-2xl font-bold font-headline text-secondary">Recent Charges</h2>
-          <Card className="border-none bg-white shadow-xl rounded-3xl overflow-hidden">
-            <CardHeader className="bg-secondary/5 pb-6 border-b border-secondary/10">
+        <section className="space-y-4 lg:col-span-2 md:space-y-6">
+          <h2 className="font-headline text-xl font-bold text-secondary md:text-2xl">Recent Charges</h2>
+          <Card className="overflow-hidden rounded-lg border-none bg-white shadow-xl md:rounded-3xl">
+            <CardHeader className="border-b border-secondary/10 bg-secondary/5 p-4 md:p-6 md:pb-6">
               <CardTitle className="text-sm font-bold flex items-center gap-3 text-secondary uppercase tracking-widest">
                 <History className="h-5 w-5 text-primary" />
                 Live Transaction Log
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="space-y-4 p-4 md:space-y-6 md:p-6">
               {expenses.slice(0, 5).map((expense) => (
                 <div key={expense.id} className="flex items-start justify-between border-b border-secondary/5 pb-6 last:border-0 last:pb-0">
                   <div className="space-y-1.5">

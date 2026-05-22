@@ -2,29 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, History, TrendingDown, CreditCard, Scale, Users, User, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, History, TrendingDown, CreditCard, Users, User, Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, updateDoc, arrayUnion } from "firebase/firestore";
-import { Expense } from "@/types";
 import { useUser } from "@/context/user-context";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useExpenses } from "@/lib/expense-store";
 
 export default function SettlementPage() {
   const { toast } = useToast();
   const { user } = useUser();
-  const db = useFirestore();
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-
-  const expensesQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, "trips", "trip-2026", "expenses");
-  }, [db]);
-
-  const { data: allExpenses = [] } = useCollection<Expense>(expensesQuery);
+  const { expenses: allExpenses, updateExpenses } = useExpenses();
 
   // Cross-clan balance logic
   const activeMainExpenses = allExpenses.filter(e => !e.settled);
@@ -73,69 +61,62 @@ export default function SettlementPage() {
   });
 
   const handleMainSettlement = async () => {
-    if (!db || !mainSettlement) return;
+    if (!mainSettlement) return;
     setLoadingStates(prev => ({ ...prev, main: true }));
     
     try {
-      const updates = activeMainExpenses.map(exp => {
-        const ref = doc(db, "trips", "trip-2026", "expenses", exp.id);
-        return updateDoc(ref, { settled: true });
-      });
-      await Promise.all(updates);
+      const activeExpenseIds = new Set(activeMainExpenses.map((expense) => expense.id));
+      updateExpenses((current) =>
+        current.map((expense) =>
+          activeExpenseIds.has(expense.id) ? { ...expense, settled: true } : expense
+        )
+      );
       toast({ title: "Cross-Clan Settlement Finalized" });
-    } catch (e: any) {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: "trips/trip-2026/expenses",
-        operation: 'update',
-      }));
     } finally {
       setLoadingStates(prev => ({ ...prev, main: false }));
     }
   };
 
   const handleMemberSettlement = async (key: string) => {
-    if (!db) return;
     setLoadingStates(prev => ({ ...prev, [key]: true }));
 
     const membersToSettle = key === "Nitin Core Family" ? coreMembers : [key];
     
     try {
-      const relevantExpenses = allExpenses.filter(exp => {
-        const nitinAlloc = exp.allocations.find(a => a.node_id === "node_nitin_clan");
-        return nitinAlloc?.internal_allocations?.some(m => membersToSettle.includes(m)) &&
-               !membersToSettle.every(m => (exp.settled_internal_members || []).includes(m));
-      });
+      updateExpenses((current) =>
+        current.map((expense) => {
+          const nitinAlloc = expense.allocations.find(a => a.node_id === "node_nitin_clan");
+          const shouldSettle = nitinAlloc?.internal_allocations?.some(m => membersToSettle.includes(m)) &&
+            !membersToSettle.every(m => (expense.settled_internal_members || []).includes(m));
 
-      const updates = relevantExpenses.map(exp => {
-        const ref = doc(db, "trips", "trip-2026", "expenses", exp.id);
-        return updateDoc(ref, { 
-          settled_internal_members: arrayUnion(...membersToSettle) 
-        });
-      });
+          if (!shouldSettle) return expense;
 
-      await Promise.all(updates);
+          return {
+            ...expense,
+            settled_internal_members: Array.from(new Set([
+              ...(expense.settled_internal_members || []),
+              ...membersToSettle,
+            ])),
+          };
+        })
+      );
       toast({ title: `${key} Balance Cleared` });
-    } catch (e: any) {
-       errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: "trips/trip-2026/expenses",
-        operation: 'update',
-      }));
     } finally {
       setLoadingStates(prev => ({ ...prev, [key]: false }));
     }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-5 animate-in fade-in duration-500 pb-4 md:space-y-6 md:pb-20">
       <header>
-        <h1 className="text-3xl font-bold text-primary font-headline">Settlements</h1>
+        <h1 className="font-headline text-3xl font-bold text-primary">Settlements</h1>
         <p className="text-muted-foreground text-sm">Finalize balances and clear family dues</p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
-          <Card className="border-emerald-500/20 bg-emerald-50/50 shadow-lg rounded-2xl">
-            <CardHeader className="pb-4">
+      <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
+        <div className="space-y-5 md:space-y-6">
+          <Card className="rounded-lg border-emerald-500/20 bg-emerald-50/50 shadow-lg md:rounded-2xl">
+            <CardHeader className="p-4 pb-3 md:p-6 md:pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-emerald-600/10 rounded-lg">
                   <TrendingDown className="h-5 w-5 text-emerald-600" />
@@ -144,9 +125,9 @@ export default function SettlementPage() {
               </div>
               <CardDescription className="text-xs font-medium">Final balance between Saffron and Navy clans</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 px-4 sm:px-6 pb-6">
+            <CardContent className="space-y-4 px-4 pb-5 sm:px-6 md:pb-6">
               {mainSettlement ? (
-                <div className="flex items-center justify-between p-4 sm:p-6 bg-white border border-emerald-100 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between rounded-lg border border-emerald-100 bg-white p-4 shadow-sm sm:p-6 md:rounded-2xl">
                   <div className="flex flex-col">
                     <span className="text-[9px] text-muted-foreground uppercase font-bold mb-1">From</span>
                     <span className="font-bold text-xs sm:text-sm text-secondary truncate max-w-[80px] sm:max-w-none">{mainSettlement.from}</span>
@@ -165,12 +146,12 @@ export default function SettlementPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center p-8 text-center space-y-2 bg-white/50 rounded-2xl border border-dashed border-emerald-200">
                   <CheckCircle2 className="h-8 w-8 text-emerald-500/40" />
-                  <p className="text-xs font-bold text-emerald-600/60 uppercase">Cross-clan accounts clear</p>
+                  <p className="text-xs font-bold uppercase text-emerald-600/60">Cross-clan accounts clear</p>
                 </div>
               )}
               
               <Button 
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-6 rounded-xl mt-2 shadow-lg shadow-emerald-200"
+                className="mt-2 h-12 w-full rounded-lg bg-emerald-600 font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 md:rounded-xl"
                 onClick={handleMainSettlement}
                 disabled={loadingStates.main || !mainSettlement}
               >
@@ -180,8 +161,8 @@ export default function SettlementPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-primary/10 shadow-lg bg-white rounded-2xl">
-            <CardHeader className="pb-3">
+          <Card className="rounded-lg border-primary/10 bg-white shadow-lg md:rounded-2xl">
+            <CardHeader className="p-4 pb-3 md:p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <History className="h-5 w-5 text-primary" />
@@ -189,7 +170,7 @@ export default function SettlementPage() {
                 <CardTitle className="text-lg font-headline text-secondary">Trip Stats</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3 pb-6">
+            <CardContent className="space-y-3 p-4 pt-0 md:p-6 md:pt-0">
                <div className="flex items-center justify-between p-3 border-b border-border/30 last:border-0">
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Historical Entries</p>
                   <p className="font-bold font-headline text-secondary">{allExpenses.length}</p>
@@ -203,8 +184,8 @@ export default function SettlementPage() {
         </div>
 
         {user === "nitin" && (
-          <Card className="border-primary/10 bg-white shadow-xl h-fit rounded-2xl overflow-hidden">
-            <CardHeader className="bg-secondary/5 pb-4 border-b border-secondary/10">
+          <Card className="h-fit overflow-hidden rounded-lg border-primary/10 bg-white shadow-xl md:rounded-2xl">
+            <CardHeader className="border-b border-secondary/10 bg-secondary/5 p-4 md:p-6 md:pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <Users className="h-5 w-5 text-primary" />
@@ -213,11 +194,11 @@ export default function SettlementPage() {
               </div>
               <CardDescription className="text-xs font-medium">Settle core family and individual cousins</CardDescription>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6 space-y-3">
+            <CardContent className="space-y-3 p-4 sm:p-6">
               {Object.keys(internalBalances).length > 0 ? (
                 <div className="grid gap-3">
                   {Object.entries(internalBalances).map(([key, amount]) => (
-                    <div key={key} className="flex items-center justify-between p-3 sm:p-4 bg-background rounded-xl border border-border/50 shadow-sm transition-all hover:border-primary/30">
+                    <div key={key} className="flex items-center justify-between rounded-lg border border-border/50 bg-background p-3 shadow-sm transition-all hover:border-primary/30 sm:p-4 md:rounded-xl">
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary flex-shrink-0">
                           {key === "Nitin Core Family" ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
@@ -230,7 +211,7 @@ export default function SettlementPage() {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="border-primary/30 text-primary hover:bg-primary hover:text-white text-[10px] h-8 font-bold px-4 rounded-lg ml-2"
+                        className="ml-2 h-9 rounded-lg border-primary/30 px-4 text-[10px] font-bold text-primary hover:bg-primary hover:text-white"
                         onClick={() => handleMemberSettlement(key)}
                         disabled={loadingStates[key]}
                       >
@@ -240,7 +221,7 @@ export default function SettlementPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-16 border border-dashed rounded-2xl border-primary/20 bg-primary/5">
+                <div className="rounded-lg border border-dashed border-primary/20 bg-primary/5 py-16 text-center md:rounded-2xl">
                   <CheckCircle2 className="h-10 w-10 text-primary/30 mx-auto mb-3" />
                   <p className="text-[10px] text-primary/60 font-bold uppercase tracking-widest">Internal accounts clear</p>
                 </div>

@@ -37,7 +37,7 @@ const allocateExpensePrompt = ai.definePrompt({
   name: 'allocateExpensePrompt',
   input: {schema: SmartExpenseAllocationInputSchema},
   output: {schema: SmartExpenseAllocationOutputSchema},
-  prompt: `You are an intelligent expense allocation assistant for the ClanSplit app. Your task is to analyze an expense description and suggest the most appropriate family node or sub-node from a given list.\n\nHere is the expense description:\n{{{expenseDescription}}}\n\nHere are the available family nodes and sub-nodes from which to choose:\n{{#each availableNodes}}- ID: {{{id}}}, Name: {{{display_name}}}\n{{/each}}\n\nPlease select the most relevant 'id' from the 'availableNodes' list and provide a brief 'reasoning' for your choice. Consider the context of the expense description when making your selection.`,
+  prompt: `You are an intelligent expense allocation assistant for the Muneem Sahab app. Your task is to analyze an expense description and suggest the most appropriate family node or sub-node from a given list.\n\nHere is the expense description:\n{{{expenseDescription}}}\n\nHere are the available family nodes and sub-nodes from which to choose:\n{{#each availableNodes}}- ID: {{{id}}}, Name: {{{display_name}}}\n{{/each}}\n\nPlease select the most relevant 'id' from the 'availableNodes' list and provide a brief 'reasoning' for your choice. Consider the context of the expense description when making your selection.`,
 });
 
 const allocateExpenseFlow = ai.defineFlow(

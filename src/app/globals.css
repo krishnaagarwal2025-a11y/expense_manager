@@ -42,6 +42,9 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
+    min-height: 100svh;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
@@ -73,4 +76,26 @@
 
 .error-text {
   color: #B03A2E;
+}
+
+@layer components {
+  .mobile-surface {
+    @apply rounded-lg border border-border/60 bg-white shadow-sm;
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  .indented-branch {
+    padding-left: 0.75rem;
+  }
+
+  .indented-branch::before {
+    left: 0.25rem;
+  }
 }
