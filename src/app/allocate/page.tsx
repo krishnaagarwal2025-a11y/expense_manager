@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ReceiptText, Users, CheckCircle2 } from "lucide-react";
+import { ReceiptText, Users, CheckCircle2, ListChecks } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -50,6 +50,7 @@ export default function AllocatePage() {
   }
 
   const nitinClan = MOCK_TRIP.nodes.find(n => n.id === "node_nitin_clan");
+  const allNitinMembers = nitinClan?.sub_nodes?.flatMap(sn => sn.members || []) || [];
 
   const handleToggleMember = (expId: string, member: string) => {
     setSelectedMembers(prev => {
@@ -60,6 +61,19 @@ export default function AllocatePage() {
           ...currentExp,
           [member]: !currentExp[member]
         }
+      };
+    });
+  };
+
+  const handleSelectAllGroup = (expId: string, members: string[], select: boolean) => {
+    setSelectedMembers(prev => {
+      const currentExp = { ...(prev[expId] || {}) };
+      members.forEach(m => {
+        currentExp[m] = select;
+      });
+      return {
+        ...prev,
+        [expId]: currentExp
       };
     });
   };
@@ -120,10 +134,12 @@ export default function AllocatePage() {
           const selectedCount = Object.values(currentExpSelected).filter(Boolean).length;
           const memberAmount = selectedCount > 0 ? (amountToSplit / selectedCount) : 0;
 
+          const allSelected = allNitinMembers.every(m => currentExpSelected[m]);
+
           return (
             <Card key={expense.id} className="border-accent/20 bg-card/50 overflow-hidden shadow-xl">
               <CardHeader className="pb-4 bg-secondary/10">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-accent/10 rounded-xl">
                       <ReceiptText className="h-6 w-6 text-accent" />
@@ -133,60 +149,89 @@ export default function AllocatePage() {
                       <CardDescription>{expense.date}</CardDescription>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Your Clan Total</p>
                     <p className="text-3xl font-bold font-headline text-accent">₹{amountToSplit.toLocaleString()}</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-8">
-                {nitinClan?.sub_nodes?.map(subNode => (
-                  <div key={subNode.id} className="space-y-4">
-                    <div className="flex items-center gap-2 border-b border-border/50 pb-2">
-                      <Users className="h-4 w-4 text-primary" />
-                      <h3 className="font-bold text-sm uppercase tracking-widest text-primary">{subNode.display_name}</h3>
-                    </div>
-                    
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {subNode.members?.map(member => {
-                        const isSelected = !!currentExpSelected[member];
-
-                        return (
-                          <div 
-                            key={member} 
-                            className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
-                              isSelected ? 'bg-primary/5 border-primary/40 ring-1 ring-primary/20' : 'bg-background border-border hover:border-border/80'
-                            }`}
-                          >
-                            <div className="flex items-center gap-4">
-                              <Checkbox 
-                                id={`${expense.id}-${member}`}
-                                checked={isSelected}
-                                onCheckedChange={() => handleToggleMember(expense.id, member)}
-                                className="h-5 w-5"
-                              />
-                              <div className="space-y-0.5">
-                                <Label 
-                                  htmlFor={`${expense.id}-${member}`}
-                                  className="text-sm font-semibold cursor-pointer"
-                                >
-                                  {member}
-                                </Label>
-                                {isSelected && (
-                                   <div className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-medium mt-1">
-                                     <Badge variant="outline" className="h-4 px-1 text-[9px] border-emerald-500/30 text-emerald-500">
-                                       ₹{memberAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                     </Badge>
-                                   </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                {/* Global Select All */}
+                <div className="flex items-center justify-between p-3 bg-accent/5 border border-accent/20 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <ListChecks className="h-5 w-5 text-accent" />
+                    <span className="text-sm font-bold">Select All Clan (8 Members)</span>
                   </div>
-                ))}
+                  <Checkbox 
+                    checked={allSelected}
+                    onCheckedChange={(checked) => handleSelectAllGroup(expense.id, allNitinMembers, !!checked)}
+                    className="h-6 w-6"
+                  />
+                </div>
+
+                <div className="grid gap-8">
+                  {nitinClan?.sub_nodes?.map(subNode => {
+                    const groupMembers = subNode.members || [];
+                    const groupAllSelected = groupMembers.every(m => currentExpSelected[m]);
+
+                    return (
+                      <div key={subNode.id} className="space-y-4">
+                        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-primary" />
+                            <h3 className="font-bold text-sm uppercase tracking-widest text-primary">{subNode.display_name}</h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold">Select All {subNode.display_name.split(' ')[0]}</span>
+                            <Checkbox 
+                              checked={groupAllSelected}
+                              onCheckedChange={(checked) => handleSelectAllGroup(expense.id, groupMembers, !!checked)}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {groupMembers.map(member => {
+                            const isSelected = !!currentExpSelected[member];
+
+                            return (
+                              <div 
+                                key={member} 
+                                className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
+                                  isSelected ? 'bg-primary/5 border-primary/40 ring-1 ring-primary/20' : 'bg-background border-border hover:border-border/80'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Checkbox 
+                                    id={`${expense.id}-${member}`}
+                                    checked={isSelected}
+                                    onCheckedChange={() => handleToggleMember(expense.id, member)}
+                                    className="h-5 w-5"
+                                  />
+                                  <div className="space-y-0.5">
+                                    <Label 
+                                      htmlFor={`${expense.id}-${member}`}
+                                      className="text-sm font-semibold cursor-pointer"
+                                    >
+                                      {member}
+                                    </Label>
+                                    {isSelected && (
+                                       <div className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-medium mt-1">
+                                         <Badge variant="outline" className="h-4 px-1 text-[9px] border-emerald-500/30 text-emerald-500">
+                                           ₹{memberAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                         </Badge>
+                                       </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
                 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50">
                   <div className="flex items-center gap-3">
