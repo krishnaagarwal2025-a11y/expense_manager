@@ -1,7 +1,6 @@
 
 import { Trip, Expense } from "@/types";
 
-// We keep this for initial structure, but actual data will come from Firestore
 export const DEFAULT_TRIP_STRUCTURE: Trip = {
   id: "trip-2026",
   name: "Family Vacation 2026",
@@ -23,13 +22,13 @@ export const DEFAULT_TRIP_STRUCTURE: Trip = {
           id: "node_nitin_core",
           display_name: "Nitin Core Family",
           manager_id: "user_nitin",
-          members: ["Nitin 1", "Nitin 2", "Nitin 3", "Nitin 4"]
+          members: ["Nitin", "Komal", "Khushi", "Krishna"]
         },
         {
           id: "node_nitin_cousins",
           display_name: "Cousins",
           manager_id: "user_nitin",
-          members: ["Cousin 1", "Cousin 2", "Cousin 3", "Cousin 4"]
+          members: ["Sunita", "Parul", "Payal", "Rajul"]
         }
       ]
     }
@@ -37,4 +36,4 @@ export const DEFAULT_TRIP_STRUCTURE: Trip = {
 };
 
 export const MOCK_TRIP = DEFAULT_TRIP_STRUCTURE;
-export const MOCK_EXPENSES: Expense[] = []; // Starting with data = 0
+export const MOCK_EXPENSES: Expense[] = [];

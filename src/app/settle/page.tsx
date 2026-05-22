@@ -27,7 +27,6 @@ export default function SettlementPage() {
 
   const { data: expenses = [] } = useCollection<Expense>(expensesQuery);
 
-  // Cross-Clan calculations
   const activeMainExpenses = expenses.filter(e => !e.settled);
   let sanjeevOwesNitin = 0;
   let nitinOwesSanjeev = 0;
@@ -50,10 +49,9 @@ export default function SettlementPage() {
     ? { from: "Nitin's Clan", to: "Sanjeev's Family", amount: Math.abs(netDiff) }
     : null;
 
-  // Internal Clan logic for Nitin
   const internalBalances: Record<string, number> = {};
-  const coreMembers = ["Nitin 1", "Nitin 2", "Nitin 3", "Nitin 4"];
-  const individualCousins = ["Cousin 1", "Cousin 2", "Cousin 3", "Cousin 4"];
+  const coreMembers = ["Nitin", "Komal", "Khushi", "Krishna"];
+  const individualCousins = ["Sunita", "Parul", "Payal", "Rajul"];
 
   expenses.forEach(exp => {
     const nitinAlloc = exp.allocations.find(a => a.node_id === "node_nitin_clan");
@@ -105,7 +103,6 @@ export default function SettlementPage() {
 
       const updates = relevantExpenses.map(exp => {
         const ref = doc(db, "trips", "trip-2026", "expenses", exp.id);
-        // Add all core members or the specific cousin to the settled list
         return updateDoc(ref, { 
           settled_internal_members: arrayUnion(...membersToSettle) 
         });
