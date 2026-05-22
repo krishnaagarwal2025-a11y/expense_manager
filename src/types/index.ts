@@ -20,7 +20,7 @@ export interface ExpenseAllocation {
   node_id: string;
   shares: number;
   amount: number;
-  internal_allocations?: string[]; // Added to track members selected internally
+  internal_allocations?: string[]; // Members selected internally
 }
 
 export interface Expense {
@@ -31,6 +31,8 @@ export interface Expense {
   date: string;
   allocations: ExpenseAllocation[];
   payer_id: string; // Node ID of who paid
+  settled?: boolean; // Main cross-clan settlement status
+  internal_settled?: boolean; // Nitin's internal clan settlement status
 }
 
 export interface Balance {
