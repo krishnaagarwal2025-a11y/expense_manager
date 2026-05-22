@@ -77,16 +77,20 @@ export default function AllocatePage() {
 
   const submitAllocation = (expense: Expense) => {
     if (!db) return;
+    
+    const clanAllocation = expense.allocations.find(a => a.node_id === "node_nitin_clan");
+    const requiredSelections = clanAllocation?.shares || 0;
+    
     const selected = selectedMembers[expense.id] || {};
     const selectedList = Object.entries(selected)
       .filter(([_, isSelected]) => isSelected)
       .map(([name]) => name);
 
-    if (selectedList.length !== 7) {
+    if (selectedList.length !== requiredSelections) {
       toast({
         variant: "destructive",
-        title: "Exactly 7 Required",
-        description: `You must select exactly 7 members. (Currently: ${selectedList.length})`,
+        title: `Exactly ${requiredSelections} Required`,
+        description: `You must select exactly ${requiredSelections} members based on the shares assigned. (Currently: ${selectedList.length})`,
       });
       return;
     }
@@ -118,13 +122,14 @@ export default function AllocatePage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <header>
         <h1 className="text-3xl font-bold text-primary font-headline">Internal Split</h1>
-        <p className="text-muted-foreground text-sm">Select exactly 7 members for each charge</p>
+        <p className="text-muted-foreground text-sm">Select members for each charge based on the recorded shares</p>
       </header>
 
       <div className="grid gap-6">
         {pendingExpenses.map(expense => {
           const clanAllocation = expense.allocations.find(a => a.node_id === "node_nitin_clan");
           const amountToSplit = clanAllocation?.amount || 0;
+          const requiredCount = clanAllocation?.shares || 0;
           
           const currentExpSelected = selectedMembers[expense.id] || {};
           const selectedCount = Object.values(currentExpSelected).filter(Boolean).length;
@@ -146,7 +151,7 @@ export default function AllocatePage() {
                     </div>
                   </div>
                   <div className="text-left sm:text-right">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Clan Share</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Clan Share ({requiredCount} Members)</p>
                     <p className="text-2xl font-bold font-headline text-primary">₹{amountToSplit.toLocaleString()}</p>
                   </div>
                 </div>
@@ -156,7 +161,7 @@ export default function AllocatePage() {
                 <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
                   <div className="flex items-center gap-2">
                     <ListChecks className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-bold text-secondary">Select All 8 Members</span>
+                    <span className="text-xs font-bold text-secondary">Toggle All Members</span>
                   </div>
                   <Checkbox 
                     checked={allSelected}
@@ -231,14 +236,14 @@ export default function AllocatePage() {
                 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/30">
                   <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${selectedCount === 7 ? 'bg-emerald-500/10' : 'bg-destructive/10'}`}>
-                      {selectedCount === 7 ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-destructive" />}
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${selectedCount === requiredCount ? 'bg-emerald-500/10' : 'bg-destructive/10'}`}>
+                      {selectedCount === requiredCount ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-destructive" />}
                     </div>
                     <div className="text-left">
-                      <p className={`text-xs font-bold ${selectedCount === 7 ? 'text-emerald-600' : 'text-destructive'}`}>
-                        {selectedCount} of 7 Selected
+                      <p className={`text-xs font-bold ${selectedCount === requiredCount ? 'text-emerald-600' : 'text-destructive'}`}>
+                        {selectedCount} of {requiredCount} Selected
                       </p>
-                      <p className="text-[10px] text-muted-foreground font-medium">Exactly 7 members required.</p>
+                      <p className="text-[10px] text-muted-foreground font-medium">Selection must match original shares ({requiredCount}).</p>
                     </div>
                   </div>
                   <Button 
