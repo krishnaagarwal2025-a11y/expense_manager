@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Home, ListOrdered, TreePine, CreditCard, Settings, PlusCircle, Split, LogOut } from "lucide-react";
+import { Home, ListOrdered, CreditCard, Settings, PlusCircle, Split, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,13 +16,13 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { useUser } from "@/context/user-context";
+import { Button } from "@/components/ui/button";
 
 export function ClanSidebar() {
   const { user, setUser } = useUser();
   
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/" },
-    { icon: TreePine, label: "Hierarchy", href: "/hierarchy" },
     { icon: ListOrdered, label: "Expenses", href: "/expenses" },
     { icon: CreditCard, label: "Settlements", href: "/settle" },
   ];
@@ -103,5 +103,3 @@ export function ClanSidebar() {
     </Sidebar>
   );
 }
-
-import { Button } from "@/components/ui/button";

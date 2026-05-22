@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-12 animate-in fade-in zoom-in-95 duration-500">
+      <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-12 animate-in fade-in duration-500">
         <div className="text-center space-y-4 max-w-lg">
           <div className="mx-auto h-20 w-20 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-4xl mb-6 shadow-2xl shadow-primary/20">
             C
@@ -147,11 +147,6 @@ export default function Dashboard() {
         <section className="lg:col-span-3 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold font-headline">Family Structure</h2>
-            <Button variant="link" size="sm" asChild>
-              <Link href="/hierarchy" className="gap-1">
-                View Hierarchy <ArrowRight className="h-3 w-3" />
-              </Link>
-            </Button>
           </div>
           <div className="space-y-4">
             {MOCK_TRIP.nodes.map((node) => (
