@@ -17,7 +17,6 @@ import { collection, doc, updateDoc } from "firebase/firestore";
 import { Expense } from "@/types";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AllocatePage() {
   const { user } = useUser();
@@ -34,7 +33,7 @@ export default function AllocatePage() {
 
   // Filter expenses that have a Nitin Clan allocation but haven't been internally allocated yet
   const pendingExpenses = allExpenses.filter(exp => 
-    exp.allocations.some(a => a.node_id === "node_nitin_clan" && (!a.internal_allocations || a.internal_allocations.length === 0))
+    exp.allocations.some(a => a.node_id === "node_nitin_clan" && (!a.internal_allocations || a.internal_allocations.length === 0)) && !exp.settled
   );
 
   // State for member-level selection: { [expenseId]: { [memberName]: boolean } }
@@ -126,14 +125,6 @@ export default function AllocatePage() {
         <h1 className="text-3xl font-bold text-primary font-headline">Internal Clan Allocations</h1>
         <p className="text-muted-foreground">Divide your clan's ₹ shares equally among core family and cousins</p>
       </header>
-
-      <Alert variant="destructive" className="bg-destructive/10 border-destructive/20">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Selection Rule</AlertTitle>
-        <AlertDescription>
-          For every allocation, you must select **exactly 7 members** from your clan to participate in the split.
-        </AlertDescription>
-      </Alert>
 
       <div className="grid gap-6">
         {pendingExpenses.map(expense => {
