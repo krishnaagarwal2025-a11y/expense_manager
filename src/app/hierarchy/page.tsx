@@ -1,5 +1,5 @@
 "use client";
-
+import { Badge } from "@/components/ui/badge";
 import { MOCK_TRIP } from "@/lib/mock-data";
 import { NestNodeCard } from "@/components/clan/nest-node-card";
 import { Button } from "@/components/ui/button";
